@@ -4,10 +4,30 @@
 \alias{autocovarianceTest}
 \title{Title}
 \usage{
-autocovarianceTest(x)
+autocovarianceTest(
+  X,
+  Y,
+  L,
+  test = "Dependent",
+  alpha = 0.05,
+  B = 500,
+  prewhiten = FALSE
+)
 }
 \arguments{
-\item{x}{}
+\item{X}{}
+
+\item{Y}{}
+
+\item{L}{}
+
+\item{test}{}
+
+\item{alpha}{}
+
+\item{B}{}
+
+\item{prewhiten}{}
 }
 \value{
 

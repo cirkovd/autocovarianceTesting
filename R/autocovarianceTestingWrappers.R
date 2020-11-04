@@ -1,3 +1,9 @@
+## usethis namespace: start
+#' @importFrom Rcpp sourceCpp
+## usethis namespace: end
+NULL
+#' @useDynLib autocovarianceTesting, .registration=TRUE
+#' 
 
 # Function to run compatibility checks
 compatibilityChecks <- function(X, Y, L, test, alpha, B, prewhiten){
@@ -28,7 +34,7 @@ compatibilityChecks <- function(X, Y, L, test, alpha, B, prewhiten){
   }
   
   # test must be one of c(Independent, Dependent, bootDependent, bootBartlett)
-  if (!(test %in% c("Independent", "Dependent", "bootDependent", "bootBartlett"))){
+  if (!(all(test %in% c("Independent", "Dependent", "bootDependent", "bootBartlett")))){
     stop(paste("test must be one of Independent, Dependent, bootDependent, or bootBartlett"))
   }
   
@@ -72,5 +78,15 @@ autocovarianceTest <- function(X, Y, L, test = "Dependent", alpha = 0.05, B = 50
   
   # Compatibility Tests
   compatibilityChecks(X, Y, L, test, alpha, B, prewhiten)
+  
+  # Compute dependent covariance if need be
+  if ("Independent" %in% test | "Dependent" %in% test){
+    # Compute dependent covariance
+  }
+  
+  # Compute independent covariance if requested
+  if ("Independent" %in% test){
+    # Set dependent covariance matrix terms to zero
+  }
   
 }

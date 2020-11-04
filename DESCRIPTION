@@ -7,7 +7,9 @@ Author: Who wrote it
 Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
-Imports: Rcpp (>= 1.0.5)
+Imports: 
+    Rcpp
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.1.1
-Suggests: testthat, tidyverse, Matrix, mvtnorm, matrixcalc, parallel
+Suggests: testthat, tidyverse, Matrix, mvtnorm, matrixcalc, parallel, forecast
+Roxygen: list(markdown = TRUE)
