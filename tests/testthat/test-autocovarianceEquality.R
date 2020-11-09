@@ -288,24 +288,24 @@ test_that("Functions work", {
   Y1 <- arima.sim(model = list(ma = 0.2), n)
   
   # My function output
-  out1 <- calculateAutocovariance(as.matrix(X1), as.matrix(Y1))
+  out1 <- calculateAutocovariance(as.matrix(X1), as.matrix(Y1), 6)
   
   # Correct base R output
-  acfXX <- ccf(X1, X1, plot = FALSE, type = "covariance", demean = TRUE, lag.max = n - 1)$acf
-  ccfXY <- ccf(X1, Y1, plot = FALSE, type = "covariance", demean = TRUE, lag.max = n - 1)$acf
-  ccfYX <- ccf(Y1, X1, plot = FALSE, type = "covariance", demean = TRUE, lag.max = n - 1)$acf
-  acfYY <- ccf(Y1, Y1, plot = FALSE, type = "covariance", demean = TRUE, lag.max = n - 1)$acf
+  acfXX <- ccf(X1, X1, plot = FALSE, type = "covariance", demean = TRUE, lag.max = 5)$acf
+  ccfXY <- ccf(X1, Y1, plot = FALSE, type = "covariance", demean = TRUE, lag.max = 5)$acf
+  ccfYX <- ccf(Y1, X1, plot = FALSE, type = "covariance", demean = TRUE, lag.max = 5)$acf
+  acfYY <- ccf(Y1, Y1, plot = FALSE, type = "covariance", demean = TRUE, lag.max = 5)$acf
   
   ## Try a multivariate example
   X <- cbind(rnorm(n), rnorm(n), rnorm(n))
   Y <- cbind(rnorm(n), rnorm(n), rnorm(n))
   
   # My function output
-  out2 <- calculateAutocovariance(X, Y)[ , , n:(2 * n - 1)]
+  out2 <- calculateAutocovariance(X, Y, 6)[ , , 6:11]
   out2 <- aperm(out2, c(3, 1, 2))
   
   # Correct base R output
-  acfZ <- acf(cbind(X, Y), plot = FALSE, type = "covariance", demean = TRUE, lag.max = n - 1)$acf
+  acfZ <- acf(cbind(X, Y), plot = FALSE, type = "covariance", demean = TRUE, lag.max = 5)$acf
   
   
   # Univariate time series example
@@ -333,19 +333,19 @@ test_that("Functions work", {
   out3 <- get.covar.matrix(cbind(X1, Y1), 5, corr_only = TRUE)
   out4 <- dependentCovariance(matrix(X1), matrix(Y1), 5)
   
-  try(test_that("dependentCovaraince"),{
-    # Multivariate
-    expect_equal(out1[[1]][-2], out2[[1]], check.attributes = FALSE, tolerance = 0.0000001)
-    expect_equal(as.numeric(out1[[2]][-2, -2]), as.numeric(out2[[2]]), check.attributes = FALSE, tolerance = 0.001)
-    # Univariate
-    expect_equal(as.numeric(out3[[1]]), as.numeric(out4[[1]]), check.attributes = FALSE)
-    expect_equal(as.numeric(out3[[2]]), as.numeric(out4[[2]]), check.attributes = FALSE)
-  })
+  # Multivariate
+  expect_equal(out1[[1]][-2], out2[[1]], check.attributes = FALSE, tolerance = 0.0000001)
+  expect_equal(as.numeric(out1[[2]][-2, -2]), as.numeric(out2[[2]]), check.attributes = FALSE, tolerance = 0.00000001)
+  # Univariate
+  expect_equal(as.numeric(out3[[1]]), as.numeric(out4[[1]]), check.attributes = FALSE)
+  expect_equal(as.numeric(out3[[2]]), as.numeric(out4[[2]]), check.attributes = FALSE)
+  
   
   microbenchmark(
     get.covar.matrix(cbind(X1, X2, Y1, Y2), 5, corr_only = TRUE),
     dependentCovariance(cbind(X1, X2), cbind(Y1, Y2), 5),
     times = 10
   )
+  # 80 times faster
   
 })

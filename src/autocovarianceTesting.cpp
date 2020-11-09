@@ -19,7 +19,7 @@ using namespace arma;
 //' @param Y a time series
 //' @export
 // [[Rcpp::export]]
-arma::cube calculateAutocovariance(const arma::mat & X, const arma::mat & Y){
+arma::cube calculateAutocovariance(const arma::mat & X, const arma::mat & Y, const int & maxLag){
     // Get some details from the inputs
     int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
@@ -27,16 +27,16 @@ arma::cube calculateAutocovariance(const arma::mat & X, const arma::mat & Y){
     // Concatenate the series
     arma::mat Z(n, 2 * k);
     Z(span(0, n - 1), span(0, k - 1)) = X; 
-    Z(span(0, n - 1), span(k, 2*k - 1)) = Y; 
+    Z(span(0, n - 1), span(k, 2 * k - 1)) = Y; 
     
     // Center the time series
     arma::mat ZCenter = Z.each_row() - arma::mean(Z, 0);
     
     // Preallocate acvf matrices
     arma::cube ZZt(2 * k, 2 * k, n, fill::zeros);
-    arma::cube gammaZ(2 * k, 2 * k, n, fill::zeros);
+    arma::cube gammaZ(2 * k, 2 * k, maxLag, fill::zeros);
     
-    for (int h = 0; h < n; h++){
+    for (int h = 0; h < maxLag ; h++){
         for(int t = 0; t < n - h; t++){
             // Compute summand
             ZZt.slice(t) = ZCenter.row(t + h).t() * ZCenter.row(t);
@@ -49,13 +49,13 @@ arma::cube calculateAutocovariance(const arma::mat & X, const arma::mat & Y){
     }
     
     // Bind the covariance matrices into one large list of covariances
-    arma::cube acf(2 * k, 2 * k, 2 * (n - 1) + 1, fill::zeros);
+    arma::cube acf(2 * k, 2 * k, 2 * (maxLag - 1) + 1, fill::zeros);
     // positive lagged acf
-    acf(span(0, 2 * k - 1), span(0, 2 * k - 1), span(n - 1, 2*n - 2)) = gammaZ;
+    acf(span(0, 2 * k - 1), span(0, 2 * k - 1), span(maxLag - 1, 2*maxLag - 2)) = gammaZ;
     
     // loop to set up negative lag acf
-    for (int h = 0; h < n - 1; h++){
-        acf.slice(h) = acf.slice(2 * n - 2 - h).t();
+    for (int h = 0; h < maxLag - 1; h++){
+        acf.slice(h) = acf.slice(2 * maxLag - 2 - h).t();
     }
     
     return acf;
@@ -75,11 +75,15 @@ Rcpp::List dependentCovariance(const arma::mat & X, const arma::mat & Y, const d
     int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
     
+    // truncation for asymptotic covariance
+    int trunc = floor(cbrt(n));
+    
+    int maxLag = trunc + L + 2;
     // Get autocovariance function
-    arma::cube acf = calculateAutocovariance(X, Y);
+    arma::cube acf = calculateAutocovariance(X, Y, maxLag);
     
     // Get our autocovariances up to lag L
-    arma::colvec eta = vectorise(acf.slices(n - 1, n + L - 1));
+    arma::colvec eta = vectorise(acf.slices(maxLag - 1, maxLag + L - 1));
     
     // Create the contrast matrix used in the test statistic
     arma::mat cont_mat(2 * k, 2 * k, fill::zeros);
@@ -105,9 +109,9 @@ Rcpp::List dependentCovariance(const arma::mat & X, const arma::mat & Y, const d
     // Get autocovariances under the null hypothesis (average the block diagonals)
     arma::cube acf_H0 = acf;
     // Sum and replace the blog diagonals
-    arma::cube acf_sum = acf_H0(span(0, k - 1), span(0, k - 1), span(0, 2 * n - 2)) + acf_H0(span(k, 2 * k - 1), span(k, 2 * k - 1), span(0, 2 * n - 2)); 
-    acf_H0(span(0, k - 1), span(0, k - 1), span(0, 2 * n - 2)) = acf_sum;
-    acf_H0(span(k, 2 * k - 1), span(k, 2 * k - 1), span(0, 2 * n - 2)) = acf_sum;
+    arma::cube acf_sum = acf_H0(span(0, k - 1), span(0, k - 1), span(0, 2 * maxLag - 2)) + acf_H0(span(k, 2 * k - 1), span(k, 2 * k - 1), span(0, 2 * maxLag - 2)); 
+    acf_H0(span(0, k - 1), span(0, k - 1), span(0, 2 * maxLag - 2)) = acf_sum;
+    acf_H0(span(k, 2 * k - 1), span(k, 2 * k - 1), span(0, 2 * maxLag - 2)) = acf_sum;
     
     // Create a matrix with 0.5 to average the autocovariances
     arma::mat half(k, k, fill::zeros);
@@ -116,12 +120,11 @@ Rcpp::List dependentCovariance(const arma::mat & X, const arma::mat & Y, const d
     half = kron(arma::eye(2, 2), half) + kron(arma::fliplr(arma::eye(2, 2)), one);
     
     // Divide block diagonals by 2
-    for (int h = 0; h < 2 * n - 2; h++){
+    for (int h = 0; h < 2 * maxLag - 2; h++){
         acf_H0.slice(h) = acf_H0.slice(h) % half;
     }
     
     // Compute asymptotic covariance matrix
-    int trunc = floor(cbrt(n));
     int Wdim = pow(2 * k, 2) * (L + 1);
     arma::mat W(Wdim, Wdim, fill::zeros);
     int row = 0;
@@ -135,7 +138,7 @@ Rcpp::List dependentCovariance(const arma::mat & X, const arma::mat & Y, const d
                     for (int d = 0; d < 2 * k; d++){
                         for (int c = 0; c < 2 * k; c++){
                             // Apply Bartlett's Formula
-                            W(row, col) = bartlettForumla(acf_H0, trunc, a, b, c, d, lag1, lag2, n);
+                            W(row, col) = bartlettForumla(acf_H0, trunc, a, b, c, d, lag1, lag2, maxLag);
                             col = (col + 1) % (Wdim);
                         }
                     }
