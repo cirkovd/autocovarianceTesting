@@ -61,11 +61,108 @@ arma::cube calculateAutocovariance(const arma::mat & X, const arma::mat & Y){
     return acf;
 }
 
+double bartlettForumla(const arma::cube & acf_H0, const int trunc, const int a, const int b, const int c, const int d, const int p, const int q, const int n){
+    arma::colvec cov = acf_H0(span(a, a), span(c, c), span(n - 1 - trunc,  n - 1 + trunc)) % acf_H0(span(b, b), span(d, d), span(n - 1 - trunc - p + q,  n - 1 + trunc - p + q)) + acf_H0(span(a, a), span(d, d), span(n - 1 - trunc + q,  n - 1 + trunc + q)) % acf_H0(span(b, b), span(c, c), span(n - 1 - trunc - p,  n - 1 + trunc - p));
+    double covar = sum(cov);
+    return covar;
+}
+
 // Function that computes the asymptotic covariance matrix of the autocovariance differences 
 // when the two time series are dependent
+// [[Rcpp::export]]
 Rcpp::List dependentCovariance(const arma::mat & X, const arma::mat & Y, const double & L) {
     // Get some details from the inputs
     int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
+    
+    // Get autocovariance function
+    arma::cube acf = calculateAutocovariance(X, Y);
+    
+    // Get our autocovariances up to lag L
+    arma::colvec eta = vectorise(acf.slices(n - 1, n + L - 1));
+    
+    // Create the contrast matrix used in the test statistic
+    arma::mat cont_mat(2 * k, 2 * k, fill::zeros);
+    arma::mat A_sub(pow(k, 2), pow(2 * k, 2), fill::zeros);
+    int counter = 0;
+    
+    // Create contrast matrix submatrix
+    for (int j = 0; j < k; j++){
+        for (int i = 0; i < k; i++){
+            // Create mini matrices that when vectorized give rows of A
+            cont_mat(i, j) = 1;
+            cont_mat(i + k, j + k) = -1;
+            A_sub.row(counter) = trans(vectorise(cont_mat));
+            
+            // reset matrix
+            cont_mat.zeros();
+            counter = counter + 1;
+        }
+    }
+    // Create large contrast matrix 
+    arma::mat A = kron(arma::eye(L + 1, L + 1), A_sub);
+    
+    // Get autocovariances under the null hypothesis (average the block diagonals)
+    arma::cube acf_H0 = acf;
+    // Sum and replace the blog diagonals
+    arma::cube acf_sum = acf_H0(span(0, k - 1), span(0, k - 1), span(0, 2 * n - 2)) + acf_H0(span(k, 2 * k - 1), span(k, 2 * k - 1), span(0, 2 * n - 2)); 
+    acf_H0(span(0, k - 1), span(0, k - 1), span(0, 2 * n - 2)) = acf_sum;
+    acf_H0(span(k, 2 * k - 1), span(k, 2 * k - 1), span(0, 2 * n - 2)) = acf_sum;
+    
+    // Create a matrix with 0.5 to average the autocovariances
+    arma::mat half(k, k, fill::zeros);
+    half.fill(0.5);
+    arma::mat one(k, k, fill::ones);
+    half = kron(arma::eye(2, 2), half) + kron(arma::fliplr(arma::eye(2, 2)), one);
+    
+    // Divide block diagonals by 2
+    for (int h = 0; h < 2 * n - 2; h++){
+        acf_H0.slice(h) = acf_H0.slice(h) % half;
+    }
+    
+    // Compute asymptotic covariance matrix
+    int trunc = floor(cbrt(n));
+    int Wdim = pow(2 * k, 2) * (L + 1);
+    arma::mat W(Wdim, Wdim, fill::zeros);
+    int row = 0;
+    int col = 0;
+    
+    // Fill only upper diagonal
+    for (int lag1 = 0; lag1 < L + 1; lag1++){
+        for (int b = 0; b < 2 * k; b++){
+            for (int a = 0; a < 2 * k; a++){
+                for (int lag2 = 0; lag2 < L + 1; lag2++){
+                    for (int d = 0; d < 2 * k; d++){
+                        for (int c = 0; c < 2 * k; c++){
+                            // Apply Bartlett's Formula
+                            W(row, col) = bartlettForumla(acf_H0, trunc, a, b, c, d, lag1, lag2, n);
+                            col = (col + 1) % (Wdim);
+                        }
+                    }
+                }
+                row = (row + 1) % (Wdim);
+            }
+        }
+    }
+    
+    // Get our delta vector (difference in autocovariance up to lag L)
+    arma::colvec delta = A * eta;
+    // delta covariance matrix
+    arma::mat dep_cov = A * W * trans(A);
+    
+    if ( k > 1 ){
+        // Find indices with duplicate lag 0 autocovariances
+        arma::mat dup(k, k, fill::ones);
+        dup = arma::trimatu(dup, 1);
+        arma::uvec dup_ind = find(vectorise(dup));
+        
+        // Remove duplicates
+        delta.shed_rows(dup_ind);
+        dep_cov.shed_rows(dup_ind);
+        dep_cov.shed_cols(dup_ind);
+    }
+    
+    return Rcpp::List::create(delta, dep_cov);
+    
 }
 

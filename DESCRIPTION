@@ -11,5 +11,5 @@ Imports:
     Rcpp
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.1.1
-Suggests: testthat, tidyverse, Matrix, mvtnorm, matrixcalc, parallel, forecast
+Suggests: testthat, tidyverse, Matrix, mvtnorm, matrixcalc, parallel, forecast, microbenchmark
 Roxygen: list(markdown = TRUE)

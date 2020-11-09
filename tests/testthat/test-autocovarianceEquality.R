@@ -11,6 +11,7 @@ test_that("Functions work", {
   library(forecast)
   library(Rcpp)
   library(autocovarianceTesting)
+  library(microbenchmark)
   
   ################################
   ## get.covar.matrix()
@@ -63,7 +64,7 @@ test_that("Functions work", {
     }
     
     # truncation
-    r <- seq(-floor(n^(1/3)), floor(n^(1/3)), 1)
+    r <- seq(-floor(n^(1/3) + 0.00000001), floor(n^(1/3) + 0.00000001), 1)
     #r <- seq(-floor(sqrt(n)), floor(sqrt(n)), 1)
     # parameters
     # Find lower triangle and don't compute those terms
@@ -314,5 +315,37 @@ test_that("Functions work", {
   expect_equal(matrix(out1[2, 2, ]), matrix(acfYY))
   # Multivariate example
   expect_equal(out2, acfZ)
+  
+  
+  ## Tests for dependentCovariance function
+  set.seed(1234)
+  n <- 1000
+  X1 <- arima.sim(list(ar = 0.8), n)
+  X2 <- arima.sim(list(ar = 0.8), n)
+  Y1 <- arima.sim(list(ar = 0.8), n)
+  Y2 <- arima.sim(list(ar = 0.8), n)
+  
+  # Try a multivariate example
+  out1 <- get.covar.matrix(cbind(X1, X2, Y1, Y2), 5, corr_only = TRUE)
+  out2 <- dependentCovariance(cbind(X1, X2), cbind(Y1, Y2), 5)
+  
+  # Try a univariate example
+  out3 <- get.covar.matrix(cbind(X1, Y1), 5, corr_only = TRUE)
+  out4 <- dependentCovariance(matrix(X1), matrix(Y1), 5)
+  
+  try(test_that("dependentCovaraince"),{
+    # Multivariate
+    expect_equal(out1[[1]][-2], out2[[1]], check.attributes = FALSE, tolerance = 0.0000001)
+    expect_equal(as.numeric(out1[[2]][-2, -2]), as.numeric(out2[[2]]), check.attributes = FALSE, tolerance = 0.001)
+    # Univariate
+    expect_equal(as.numeric(out3[[1]]), as.numeric(out4[[1]]), check.attributes = FALSE)
+    expect_equal(as.numeric(out3[[2]]), as.numeric(out4[[2]]), check.attributes = FALSE)
+  })
+  
+  microbenchmark(
+    get.covar.matrix(cbind(X1, X2, Y1, Y2), 5, corr_only = TRUE),
+    dependentCovariance(cbind(X1, X2), cbind(Y1, Y2), 5),
+    times = 10
+  )
   
 })
