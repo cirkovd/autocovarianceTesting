@@ -33,6 +33,11 @@ compatibilityChecks <- function(X, Y, L, test, alpha, B, prewhiten){
     stop(paste("L must be strictly less than n the length of the series"))
   }
   
+  # L must be larger than n
+  if ( ncol(X) >= nrow(X) ){
+    stop(paste("The dimension of the series must be smaller than its length"))
+  }
+  
   # test must be one of c(Independent, Dependent, bootDependent, bootBartlett)
   if (!(all(test %in% c("Independent", "Dependent", "bootDependent", "bootBartlett")))){
     stop(paste("test must be one of Independent, Dependent, bootDependent, or bootBartlett"))
@@ -79,14 +84,14 @@ autocovarianceTest <- function(X, Y, L, test = "Dependent", alpha = 0.05, B = 50
   # Compatibility Tests
   compatibilityChecks(X, Y, L, test, alpha, B, prewhiten)
   
-  # Compute dependent covariance if need be
+  # Initialize output list
+  out <- list()
+  
+  # Compute independent and dependent covariance if need be
   if ("Independent" %in% test | "Dependent" %in% test){
     # Compute dependent covariance
+    testStatistics <- calculateCovariance(X, Y, L)
   }
   
-  # Compute independent covariance if requested
-  if ("Independent" %in% test){
-    # Set dependent covariance matrix terms to zero
-  }
   
 }

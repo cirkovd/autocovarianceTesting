@@ -10,7 +10,7 @@ calculateAutocovariance <- function(X, Y, maxLag) {
     .Call(`_autocovarianceTesting_calculateAutocovariance`, X, Y, maxLag)
 }
 
-dependentCovariance <- function(X, Y, L) {
-    .Call(`_autocovarianceTesting_dependentCovariance`, X, Y, L)
+calculateCovariance <- function(X, Y, L) {
+    .Call(`_autocovarianceTesting_calculateCovariance`, X, Y, L)
 }
 

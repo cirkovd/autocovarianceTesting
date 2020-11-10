@@ -70,7 +70,7 @@ double bartlettForumla(const arma::cube & acf_H0, const int trunc, const int a, 
 // Function that computes the asymptotic covariance matrix of the autocovariance differences 
 // when the two time series are dependent
 // [[Rcpp::export]]
-Rcpp::List dependentCovariance(const arma::mat & X, const arma::mat & Y, const double & L) {
+Rcpp::List calculateCovariance(const arma::mat & X, const arma::mat & Y, const double & L) {
     // Get some details from the inputs
     int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
@@ -148,10 +148,21 @@ Rcpp::List dependentCovariance(const arma::mat & X, const arma::mat & Y, const d
         }
     }
     
+    // Compute independent covariance matrix
+    arma::mat onemat(k, k, fill::ones);
+    arma::colvec ind_vec = vectorise(kron(arma::eye(2, 2), onemat));
+    arma::mat ind_mat = ind_vec * trans(ind_vec);
+    arma::mat ind_mat2(L + 1, L + 1, fill::ones);
+    arma::mat large_ind_mat = kron(ind_mat2, ind_mat);
+    arma::mat onemat2(2 * pow(k, 2), 2 * pow(k, 2), fill::ones);
+    large_ind_mat = kron(ind_mat2, kron(arma::eye(2, 2), onemat2)) % large_ind_mat;
+        
     // Get our delta vector (difference in autocovariance up to lag L)
     arma::colvec delta = A * eta;
     // delta covariance matrix
     arma::mat dep_cov = A * W * trans(A);
+    // independent covariance matrix
+    arma::mat ind_cov = A * (large_ind_mat % W) * trans(A);
     
     if ( k > 1 ){
         // Find indices with duplicate lag 0 autocovariances
@@ -163,9 +174,13 @@ Rcpp::List dependentCovariance(const arma::mat & X, const arma::mat & Y, const d
         delta.shed_rows(dup_ind);
         dep_cov.shed_rows(dup_ind);
         dep_cov.shed_cols(dup_ind);
+        ind_cov.shed_rows(dup_ind);
+        ind_cov.shed_cols(dup_ind);
     }
     
-    return Rcpp::List::create(delta, dep_cov);
+    return Rcpp::List::create(Rcpp::Named("delta") = delta, 
+                              Rcpp::Named("dep_cov") = dep_cov,
+                              Rcpp::Named("ind_cov") = ind_cov);
     
 }
 

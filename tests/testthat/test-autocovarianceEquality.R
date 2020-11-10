@@ -317,7 +317,7 @@ test_that("Functions work", {
   expect_equal(out2, acfZ)
   
   
-  ## Tests for dependentCovariance function
+  ## Tests for calculateCovariance function
   set.seed(1234)
   n <- 1000
   X1 <- arima.sim(list(ar = 0.8), n)
@@ -326,24 +326,26 @@ test_that("Functions work", {
   Y2 <- arima.sim(list(ar = 0.8), n)
   
   # Try a multivariate example
-  out1 <- get.covar.matrix(cbind(X1, X2, Y1, Y2), 5, corr_only = TRUE)
-  out2 <- dependentCovariance(cbind(X1, X2), cbind(Y1, Y2), 5)
+  out1 <- get.covar.matrix(cbind(X1, X2, Y1, Y2), 5, corr_only = FALSE)
+  out2 <- calculateCovariance(cbind(X1, X2), cbind(Y1, Y2), 5)
   
   # Try a univariate example
-  out3 <- get.covar.matrix(cbind(X1, Y1), 5, corr_only = TRUE)
-  out4 <- dependentCovariance(matrix(X1), matrix(Y1), 5)
+  out3 <- get.covar.matrix(cbind(X1, Y1), 5, corr_only = FALSE)
+  out4 <- calculateCovariance(matrix(X1), matrix(Y1), 5)
   
   # Multivariate
   expect_equal(out1[[1]][-2], out2[[1]], check.attributes = FALSE, tolerance = 0.0000001)
   expect_equal(as.numeric(out1[[2]][-2, -2]), as.numeric(out2[[2]]), check.attributes = FALSE, tolerance = 0.00000001)
+  expect_equal(as.numeric(out1[[3]][-2, -2]), as.numeric(out2[[3]]), check.attributes = FALSE, tolerance = 0.00000001)
   # Univariate
   expect_equal(as.numeric(out3[[1]]), as.numeric(out4[[1]]), check.attributes = FALSE)
   expect_equal(as.numeric(out3[[2]]), as.numeric(out4[[2]]), check.attributes = FALSE)
+  expect_equal(as.numeric(out3[[3]]), as.numeric(out4[[3]]), check.attributes = FALSE)
   
   
   microbenchmark(
-    get.covar.matrix(cbind(X1, X2, Y1, Y2), 5, corr_only = TRUE),
-    dependentCovariance(cbind(X1, X2), cbind(Y1, Y2), 5),
+    get.covar.matrix(cbind(X1, X2, Y1, Y2), 5, corr_only = FALSE),
+    calculateCovariance(cbind(X1, X2), cbind(Y1, Y2), 5),
     times = 10
   )
   # 80 times faster

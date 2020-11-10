@@ -19,23 +19,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// dependentCovariance
-Rcpp::List dependentCovariance(const arma::mat& X, const arma::mat& Y, const double& L);
-RcppExport SEXP _autocovarianceTesting_dependentCovariance(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP) {
+// calculateCovariance
+Rcpp::List calculateCovariance(const arma::mat& X, const arma::mat& Y, const double& L);
+RcppExport SEXP _autocovarianceTesting_calculateCovariance(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const double& >::type L(LSEXP);
-    rcpp_result_gen = Rcpp::wrap(dependentCovariance(X, Y, L));
+    rcpp_result_gen = Rcpp::wrap(calculateCovariance(X, Y, L));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_autocovarianceTesting_calculateAutocovariance", (DL_FUNC) &_autocovarianceTesting_calculateAutocovariance, 3},
-    {"_autocovarianceTesting_dependentCovariance", (DL_FUNC) &_autocovarianceTesting_dependentCovariance, 3},
+    {"_autocovarianceTesting_calculateCovariance", (DL_FUNC) &_autocovarianceTesting_calculateCovariance, 3},
     {NULL, NULL, 0}
 };
 
