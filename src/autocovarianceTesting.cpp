@@ -184,3 +184,33 @@ Rcpp::List calculateCovariance(const arma::mat & X, const arma::mat & Y, const d
     
 }
 
+// Function that computes test statistics for fixed lagged tests given autocovariance matrices
+// and asymptotic covariance matrix
+// [[Rcpp::export]]
+Rcpp::List calculateTestStat(const arma::colvec & delta, const arma::mat & covar, const int & n, const int & L, const int & k) {
+    // Compute unweighted stat
+    double stat = n * as_scalar(trans(delta) * solve(covar, delta));  
+    
+    // Compute weighted stat
+    arma::colvec weights = arma::linspace<arma::colvec>(1, 1/(L + 1), L + 2);
+    weights.shed_row(L + 1);
+    weights = repelem(weights, k * k, 1);
+    // Get rid of duplicates
+    int p1 = delta.n_rows;
+    int p2 = weights.n_rows;
+    weights = weights.rows(p2 - p1, p2 - 1);
+    
+    // Weighted statistic
+    double weight_stat = n * as_scalar(trans(weights) * (delta % delta));
+    double K1 = trace(covar * diagmat(weights));
+    double K2 = 2 * trace(covar * diagmat(weights) * covar * diagmat(weights));
+    double alpha = pow(K1, 2) / K2;
+    double beta = K2 / K1;
+    
+    return Rcpp::List::create(Rcpp::Named("stat") = stat,
+                              Rcpp::Named("df") = p1,
+                              Rcpp::Named("weight_stat") = weight_stat,
+                              Rcpp::Named("alpha") = alpha,
+                              Rcpp::Named("beta") = beta);
+}
+

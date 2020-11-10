@@ -144,12 +144,12 @@ test_that("Functions work", {
         base_stat <- (n)*tcrossprod(crossprod(statistics[[1]][1:(k^2*(x+1)),], solve(statistics[[2]][1:(k^2*(x+1)),1:(k^2*(x+1))])), t(statistics[[1]][1:(k^2*(x+1)),]))
         weight_stat <- (n)*sum(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)*(statistics[[1]][1:(k^2*(x+1)),])^2)
         K1 <- sum(diag(statistics[[2]][1:(k^2*(x+1)), 1:(k^2*(x+1))])*rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2))
-        K2 <- 2*sum(diag(tcrossprod(crossprod(tcrossprod(statistics[[2]][1:(k^2*(x+1)), 1:(k^2*(x+1))],diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2))),statistics[[2]][1:(k^2*(x+1)), 1:(k^2*(x+1))]),diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)))))
+        K2 <- 2*sum(diag(tcrossprod(tcrossprod(tcrossprod(statistics[[2]][1:(k^2*(x+1)), 1:(k^2*(x+1))],diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2))),statistics[[2]][1:(k^2*(x+1)), 1:(k^2*(x+1))]),diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)))))
       } else {
         base_stat <- (n)*tcrossprod(crossprod(matrix(statistics[[1]][1:(k^2*(x+1)),])[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),], solve(statistics[[2]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)])), matrix(statistics[[1]][1:(k^2*(x+1)),])[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),])
         weight_stat <- (n)*sum(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)]*(matrix(statistics[[1]][1:(k^2*(x+1)),])[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),])^2)
         K1 <- sum(diag(statistics[[2]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)])*rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)])
-        K2 <- 2*sum(diag(tcrossprod(crossprod(tcrossprod(statistics[[2]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)],diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)])), statistics[[2]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)]),diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)]))))
+        K2 <- 2*sum(diag(tcrossprod(tcrossprod(tcrossprod(statistics[[2]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)],diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)])), statistics[[2]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)]),diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)]))))
       }
       
       c(as.numeric(base_stat), weight_stat, (K1^2)/K2, (K2)/K1)
@@ -167,12 +167,12 @@ test_that("Functions work", {
         base_stat <- (n)*tcrossprod(crossprod(statistics[[1]][1:(k^2*(x+1)),], solve(statistics[[3]][1:(k^2*(x+1)),1:(k^2*(x+1))])), t(statistics[[1]][1:(k^2*(x+1)),]))
         weight_stat <- (n)*sum(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)*(statistics[[1]][1:(k^2*(x+1)),])^2)
         K1 <- sum(diag(statistics[[3]][1:(k^2*(x+1)), 1:(k^2*(x+1))])*rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2))
-        K2 <- 2*sum(diag(tcrossprod(crossprod(tcrossprod(statistics[[3]][1:(k^2*(x+1)), 1:(k^2*(x+1))],diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2))),statistics[[3]][1:(k^2*(x+1)), 1:(k^2*(x+1))]),diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)))))
+        K2 <- 2*sum(diag(tcrossprod(tcrossprod(tcrossprod(statistics[[3]][1:(k^2*(x+1)), 1:(k^2*(x+1))],diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2))),statistics[[3]][1:(k^2*(x+1)), 1:(k^2*(x+1))]),diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)))))
       } else {
         base_stat <- (n)*tcrossprod(crossprod(matrix(statistics[[1]][1:(k^2*(x+1)),])[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),], solve(statistics[[3]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)])), matrix(statistics[[1]][1:(k^2*(x+1)),])[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),])
         weight_stat <- (n)*sum(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)]*(matrix(statistics[[1]][1:(k^2*(x+1)),])[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),])^2)
         K1 <- sum(diag(statistics[[3]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)])*rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)])
-        K2 <- 2*sum(diag(tcrossprod(crossprod(tcrossprod(statistics[[3]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)],diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)])), statistics[[3]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)]),diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)]))))
+        K2 <- 2*sum(diag(tcrossprod(tcrossprod(tcrossprod(statistics[[3]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)],diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)])), statistics[[3]][1:(k^2*(x+1)),1:(k^2*(x+1))][-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE),-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)]),diag(rep(rev(seq(0,1, by=1/(x+1))[-1]), each=k^2)[-which(!c(upper.tri(matrix(0, nrow=k, ncol=k), diag=TRUE)) == TRUE)]))))
       }
       
       c(as.numeric(base_stat), weight_stat, (K1^2)/K2, (K2)/K1)
@@ -349,5 +349,23 @@ test_that("Functions work", {
     times = 10
   )
   # 80 times faster
+  
+  ## Tests for calculateTestStat function
+  
+  # Use previous examples, assuming dependence between the two series
+  # Multivariate
+  stats1 <- calculateTestStat(out2$delta, out2$dep_cov, n, 5, 2)
+  compare1 <- c(stats1$stat, pchisq(stats1$stat, df = stats1$df, lower.tail = FALSE), stats1$weight_stat, pgamma(stats1$weight_stat, shape = stats1$alpha, scale = stats1$beta, lower.tail = FALSE))
+  compare2 <- c(t(rev(get.one.fixed.lag.test(cbind(X1, X2, Y1, Y2), 5)[3:4, 3:4])))
+  
+  # Univariate
+  stats2 <- calculateTestStat(out4$delta, out4$dep_cov, n, 5, 1)
+  compare3 <- c(stats2$stat, pchisq(stats2$stat, df = stats2$df, lower.tail = FALSE), stats2$weight_stat, pgamma(stats2$weight_stat, shape = stats2$alpha, scale = stats2$beta, lower.tail = FALSE))
+  compare4 <- c(t(rev(get.one.fixed.lag.test(cbind(X1, Y1), 5)[3:4, 3:4])))
+  
+  # Multivariate
+  expect_equal(compare1, compare2, tolerance = 0.0000001)
+  # Univariate
+  expect_equal(compare3, compare4, tolerance = 0.0000001)
   
 })

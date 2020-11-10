@@ -32,10 +32,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// calculateTestStat
+Rcpp::List calculateTestStat(const arma::colvec& delta, const arma::mat& covar, const int& n, const int& L, const int& k);
+RcppExport SEXP _autocovarianceTesting_calculateTestStat(SEXP deltaSEXP, SEXP covarSEXP, SEXP nSEXP, SEXP LSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::colvec& >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type covar(covarSEXP);
+    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const int& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< const int& >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculateTestStat(delta, covar, n, L, k));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_autocovarianceTesting_calculateAutocovariance", (DL_FUNC) &_autocovarianceTesting_calculateAutocovariance, 3},
     {"_autocovarianceTesting_calculateCovariance", (DL_FUNC) &_autocovarianceTesting_calculateCovariance, 3},
+    {"_autocovarianceTesting_calculateTestStat", (DL_FUNC) &_autocovarianceTesting_calculateTestStat, 5},
     {NULL, NULL, 0}
 };
 

@@ -84,13 +84,30 @@ autocovarianceTest <- function(X, Y, L, test = "Dependent", alpha = 0.05, B = 50
   # Compatibility Tests
   compatibilityChecks(X, Y, L, test, alpha, B, prewhiten)
   
+  # Get some info
+  n <- nrow(X)
+  k <- ncol(Y)
+  
   # Initialize output list
   out <- list()
   
   # Compute independent and dependent covariance if need be
   if ("Independent" %in% test | "Dependent" %in% test){
     # Compute dependent covariance
-    testStatistics <- calculateCovariance(X, Y, L)
+    deltaCovar <- calculateCovariance(X, Y, L)
+    # Compute test statistics
+    if ("Independent" %in% test){
+      indTest = calculateTestStat(deltaCovar$delta, deltaCovar$ind_cov, n, L, k)
+      # Compute p-values
+      indTest$pval = pchisq(indTest$stat, df = indTest$df, lower.tail = FALSE)
+      indTest$weight_pval = pgamma(indTest$weight_stat, shape = indTest$alpha, scale = indTest$beta, lower.tail = FALSE)
+    }
+    if ("Dependent" %in% test){
+      depTest = calculateTestStat(deltaCovar$delta, deltaCovar$dep_cov, n, L, k)
+      # Compute p-values
+      depTest$pval = pchisq(depTest$stat, df = depTest$df, lower.tail = FALSE)
+      depTest$weight_pval = pgamma(depTest$weight_stat, shape = depTest$alpha, scale = depTest$beta, lower.tail = FALSE)
+    }
   }
   
   

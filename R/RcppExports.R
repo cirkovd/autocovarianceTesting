@@ -14,3 +14,7 @@ calculateCovariance <- function(X, Y, L) {
     .Call(`_autocovarianceTesting_calculateCovariance`, X, Y, L)
 }
 
+calculateTestStat <- function(delta, covar, n, L, k) {
+    .Call(`_autocovarianceTesting_calculateTestStat`, delta, covar, n, L, k)
+}
+
