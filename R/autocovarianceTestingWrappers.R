@@ -91,7 +91,7 @@ autocovarianceTest <- function(X, Y, L, test = "Dependent", alpha = 0.05, B = 50
   # Initialize output list
   out <- list()
   
-  # Compute independent and dependent covariance if need be
+  # Compute independent and dependent tests if need be
   if ("Independent" %in% test | "Dependent" %in% test){
     # Compute dependent covariance
     deltaCovar <- calculateCovariance(X, Y, L)
@@ -108,6 +108,11 @@ autocovarianceTest <- function(X, Y, L, test = "Dependent", alpha = 0.05, B = 50
       depTest$pval = pchisq(depTest$stat, df = depTest$df, lower.tail = FALSE)
       depTest$weight_pval = pgamma(depTest$weight_stat, shape = depTest$alpha, scale = depTest$beta, lower.tail = FALSE)
     }
+  }
+  
+  # Compute bootstrapped tests if need be
+  if ("bootDependent" %in% test | "bootBartlett" %in% test){
+    
   }
   
   

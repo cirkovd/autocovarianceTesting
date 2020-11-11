@@ -184,7 +184,7 @@ Rcpp::List calculateCovariance(const arma::mat & X, const arma::mat & Y, const d
     
 }
 
-// Function that computes test statistics for fixed lagged tests given autocovariance matrices
+// Function that computes test statistics for fixed lag tests given autocovariance differences
 // and asymptotic covariance matrix
 // [[Rcpp::export]]
 Rcpp::List calculateTestStat(const arma::colvec & delta, const arma::mat & covar, const int & n, const int & L, const int & k) {
@@ -213,4 +213,140 @@ Rcpp::List calculateTestStat(const arma::colvec & delta, const arma::mat & covar
                               Rcpp::Named("alpha") = alpha,
                               Rcpp::Named("beta") = beta);
 }
+
+
+// Function that prewhitens time series data via an AR(p) process for the bootstrap algorithm
+arma::mat prewhitenData(const arma::mat & Z){
+    // Get some details from the inputs
+    int n = Z.n_rows; // time series length
+    int k = Z.n_cols / 2; // time series dimension
+    
+    // AR order
+    int p = ceil(std::min(10 * log(n), 0.8 * sqrt(n)));
+    // Create AR(p) matrix for linear regression
+    arma::mat V(n, 2 * k * p, fill::zeros);
+    for (int i = 1; i < p + 1; i++){
+        V.cols(2 * k * (i - 1), 2 * k * i - 1) = shift(Z, +(i - 1), 0);
+    }
+    V.shed_row(n - 1);
+    V.shed_rows(0, p - 2);
+    arma::colvec intercept(n - p, fill::ones);
+    V = join_rows(intercept, V);
+    
+    // Compute AR coefficients
+    arma::mat betas = solve(trans(V) * V, trans(V) * Z.rows(p, n - 1));  
+    
+    // Incorporate H0 for beta coefficients
+    // Average Mean
+    arma::rowvec mu = betas(span(0), span(0, k - 1)) + betas(span(0), span(k, 2 * k - 1));
+    arma::rowvec mu_avg = join_rows(mu, mu);
+    betas.shed_row(0);
+    
+    // Average Phis
+    arma::mat betas_sub(2 * k, 2 * k, fill::zeros);
+    arma::mat beta_col(2 * k, k, fill::zeros);
+    int lower = 0;
+    int upper = 0;
+    // Loop to sum beta matrices
+    for (int i = 0; i < p; i++){
+        upper = lower + 2 * k - 1;
+        betas_sub = betas.rows(lower, upper);
+        betas_sub.cols(k, 2 * k - 1) = arma::shift(betas_sub.cols(k, 2 * k - 1), +k, 0);
+        beta_col = betas_sub.cols(0, k - 1) + betas_sub.cols(k, 2 * k - 1);
+        betas.rows(lower, upper) = join_rows(beta_col, arma::shift(beta_col, +k, 0));
+        lower = upper + 1;
+    }
+    // Divide whole matrix by two to get average
+    betas = join_cols(mu_avg, betas);
+    arma::colvec half_vec(betas.n_rows, fill::zeros);
+    half_vec.fill(0.5);
+    betas = betas.each_col() % half_vec;
+    // Finally prewhiten data
+    arma::mat Zwhitened = Z.rows(p, n - 1) - V * betas;
+    
+    return Zwhitened;
+}
+
+// Function that computes test statistics for order lag tests 
+// [[Rcpp::export]]
+Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const double & L, double const & alpha, int const & B, bool const & prewhiten) {
+    // Get some details from the inputs
+    int n = X.n_rows; // time series length
+    int k = X.n_cols; // time series dimension
+    
+    // Concatenate the series
+    arma::mat Z(n, 2 * k);
+    Z(span(0, n - 1), span(0, k - 1)) = X; 
+    Z(span(0, n - 1), span(k, 2 * k - 1)) = Y; 
+    
+    // Prewhiten data if asked for
+    if (prewhiten == true){
+        Z = prewhitenData(Z);
+        n = Z.n_rows;
+    }
+    
+    // Set some parameters for block of blocks bootstrap
+    int b = floor(std::max(0.5 * cbrt(n), 2.0));
+    // no blocks
+    int K = ceil(n/b);
+    int L_max = 0;
+    if ( L == NULL ){
+        L_max = ceil(pow(log2(n), 0.999));
+    } else {
+        L_max = L;
+    }
+    
+    // Do our method but bootstrapping the covariance
+    Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L);
+    arma::colvec stats(L_max + 1, fill::zeros);
+    arma::colvec delta = covar_stats["delta"];
+    arma::mat covar = covar_stats["dep_cov"];
+    for (int i = 0; i < L_max + 1; i++){
+        stats(i) = n * as_scalar( trans(delta.rows(0, i)) * solve(covar(span(0, i), span(0, i)), delta.rows(0, i)) );
+    }
+    
+    // Do bootstrap algorithm
+    arma::mat X_Z = trans(Z.cols(0, k - 1));
+    arma::mat Y_Z = trans(Z.cols(k, 2 * k - 1));
+    arma::mat shiftedX(k, n);
+    arma::mat shiftedY(k, n);
+    arma::mat D_X(k * k * (L_max + 1), n);
+    arma::mat D_Y(k * k * (L_max + 1), n);
+    
+    
+    arma::colvec one_vec(k, fill::ones);
+    arma::colvec zero_vec(k, fill::zeros);
+    D_X.rows(0, k * k - 1) = (kron(one_vec, X_Z) % kron(X_Z, one_vec)).eval();
+    D_Y.rows(0, k * k - 1) = (kron(one_vec, Y_Z) % kron(Y_Z, one_vec)).eval();
+    
+    int lower = k * k;
+    int upper = 0;
+    double epsX = max(vectorise(X_Z));
+    double epsY = max(vectorise(Y_Z));
+    // Compute D matrices
+    for (int l = 1; l < L_max + 1; l++){
+        upper = lower + k * k - 1;
+        
+        // Compute D_X for every l
+        shiftedX = shift(X_Z, -l, 1);
+        shiftedX.cols(n - l, n - 1).clean(epsX * epsX + 10000);
+        D_X.rows(lower, upper) = (kron(one_vec, shiftedX) % kron(X_Z, one_vec)).eval();
+            
+        // Compute D_Y for every l
+        shiftedY = shift(Y_Z, -l, 1);
+        shiftedY.cols(n - l, n - 1).clean(epsY * epsY + 10000);
+        D_Y.rows(lower, upper) = (kron(one_vec, shiftedY) % kron(Y_Z, one_vec)).eval();
+        
+        lower = upper + 1; 
+    }
+    
+    arma::mat D = D_X - D_Y;
+    
+    
+    
+    return Rcpp::List::create(Rcpp::Named("D") = D,
+                              Rcpp::Named("eps") = epsX);
+}
+
+
 
