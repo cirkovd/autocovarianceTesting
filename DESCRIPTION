@@ -1,14 +1,14 @@
 Package: autocovarianceTesting
 Type: Package
-Title: What the package does (short line)
+Title: For two stationary, possibly linearly dependent time series, perform a hypothesis test for equality of autocovariance functions up to a fixed lag by employing either a Bartlett-based or bootstrapped statistic. 
 Version: 1.0
 Date: 2020-10-22
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Author:  c(person("Cirkovic", "Daniel", email = "cirkovd@stat.tamu.edu", role = c("aut", "cre")))
+Maintainer: Daniel Cirkovic <cirkovd@stat.tamu.edu>
+Description: Function that allows the user test for equality of autocovariance functions for two linearly dependent, stationary time series. The function allows the user to choose from four methods: (Weighted) Bartlett, (Weighted) Dependent Bartlett, Jin, Jin-Bartlett. The Bartlett test assumes independence of the series and uses Bartlett's formula to quantify the asymptotic covariance of the autocovariance differences. The Dependent Bartlett test is an extension of the Bartlett result to dependent series. The weighted versions of these tests emphasize earlier lag autocovariance differences. The Jin test employs a block of blocks bootstrap to approximate the asymptotic covariance matrix of autocovariance differences and selects the "optimal" lag when performing the test via an AIC-like penalty. The Jin-Bartlett test employs the same algorithm as the Jin test, but augments the asymptotic covariance estimate via Bartlett's formula. 
+License: GPL (>=3)
 Imports: 
-    Rcpp
+    Rcpp (>= 1.0.5)
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.1.1
 Suggests: testthat, tidyverse, Matrix, mvtnorm, matrixcalc, parallel, forecast, microbenchmark
