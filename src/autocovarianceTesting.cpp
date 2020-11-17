@@ -269,7 +269,7 @@ arma::mat prewhitenData(const arma::mat & Z){
 
 // Function that computes test statistics for order lag tests 
 // [[Rcpp::export]]
-Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const double & L, double const & alpha, int const & B, bool const & prewhiten) {
+Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, bool const & prewhiten) {
     // Get some details from the inputs
     int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
@@ -296,15 +296,6 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
         L_max = L;
     }
     
-    // Do our method but bootstrapping the covariance
-    Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L);
-    arma::colvec stats(L_max + 1, fill::zeros);
-    arma::colvec delta = covar_stats["delta"];
-    arma::mat covar = covar_stats["dep_cov"];
-    for (int i = 0; i < L_max + 1; i++){
-        stats(i) = n * as_scalar( trans(delta.rows(0, i)) * solve(covar(span(0, i), span(0, i)), delta.rows(0, i)) );
-    }
-    
     // Do bootstrap algorithm
     arma::mat X_Z = trans(Z.cols(0, k - 1));
     arma::mat Y_Z = trans(Z.cols(k, 2 * k - 1));
@@ -314,6 +305,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     arma::mat D_Y(k * k * (L_max + 1), n);
     
     
+    // Step (1) in Jin 2019
     arma::colvec one_vec(k, fill::ones);
     arma::colvec zero_vec(k, fill::zeros);
     D_X.rows(0, k * k - 1) = (kron(one_vec, X_Z) % kron(X_Z, one_vec)).eval();
@@ -342,11 +334,152 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     
     arma::mat D = D_X - D_Y;
     
+    // Step (2) in Jin 2019
+    int Tstar = n - std::max(L_max, b);
+    // Block starting indices
+    arma::imat block_ind(B * K, b, fill::zeros);
+    block_ind.col(0) =  randi(B * K, distr_param(0, Tstar - 1));
+    // Get blocks
+    for (int i = 0; i < B * K; i++){
+        block_ind.row(i) = linspace<irowvec>(block_ind(i, 0), block_ind(i, 0) + b - 1, b);
+    }
     
+    // Step (3) in Jin 2019
+    // Get bootstrap resample indicies 
+    arma::imat boot_ind((K * b), B, fill::zeros);
+    for (int l = 1; l < B + 1; l++){
+        boot_ind.col(l - 1) = vectorise(trans(block_ind.rows((l - 1) * K, l * K - 1)));
+    }
     
-    return Rcpp::List::create(Rcpp::Named("D") = D,
-                              Rcpp::Named("eps") = epsX);
-}
+    // Step (4) in Jin 2019
+    // Compute bootstrapped deltas
+    arma::mat Delta_l(k * k * (L_max + 1), B) ;
+    for (int i = 0; i < B; i++){
+        Delta_l.col(i) = mean(D.cols(conv_to<uvec>::from(boot_ind.col(i))), 1);
+    }
+    arma::colvec Delta_bar = mean(Delta_l, 1);
+    
+    // Step (5) in Jin 2019
+    // Compute boostrapped covariance
+    arma::mat diff = Delta_l.each_col() - Delta_bar;
+    arma::cube cov_mats(k * k * (L_max + 1), k * k * (L_max + 1), B);
+    arma::cube boot_sigmas(k * k * (L_max + 1), k * k * (L_max + 1), (L_max + 1));
+    // Matrix to help divide by B - 1
+    arma::mat div(k * k * (L_max + 1), k * k * (L_max + 1));
+    double divide = B - 1;
+    div.fill(n/divide);
+    for (int r = k * k - 1; r < k * k * (L_max + 1); r += k * k){
+        for (int l = 0; l < B; l++){
+            cov_mats.slice(l).rows(0, r).cols(0, r) = (diff.rows(0, r).col(l) * trans(diff.rows(0, r).col(l))) % div.rows(0, r).cols(0, r);
+        }
+        boot_sigmas.slice((r + 1)/(k * k) - 1) = sum(cov_mats, 2);
+    }
+    div.fill(1/divide);
+    
+    // OR use bartlett covariance
+    // Get number of duplicates 
+    int dupl = 0;
+    if ( k > 1 ){
+        arma::mat dup(k, k, fill::ones);
+        dup = arma::trimatu(dup, 1);
+        dupl = sum(sum(dup, 0));
+        div.shed_cols(0, dupl - 1);
+        div.shed_rows(0, dupl - 1); 
+    } 
+    
+    // initialize matrices
+    arma::mat X1 = Z.cols(0, k - 1);
+    arma::mat Y1 = Z.cols(k, 2 * k - 1);
+    arma::cube bart_mats(k * k * (L_max + 1) - dupl, k * k * (L_max + 1) - dupl, B);
+    arma::mat cov(k * k * (L_max + 1) - dupl, k * k * (L_max + 1) - dupl);
+    
+    // Compute bartlett covariance for each bootstrap resamples
+    for (int l = 0; l < B; l++){
+        arma::mat cov = (calculateCovariance(
+            X1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
+            Y1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
+            L_max
+        )["dep_cov"]);
+       bart_mats.slice(l)= cov % div;
+    }
+    arma::mat boot_bart = sum(bart_mats, 2);
+    
+    // Remove duplicate rows in sigma and delta
+    if ( k > 1 ){
+        arma::mat dup2(k, k, fill::ones);
+        arma::mat dup3 = arma::trimatu(dup2, 1);
+        arma::uvec dup4 = find(vectorise(dup3));
+        if ( k > 2){
+            for (int i = 0; i < dup4.n_elem; i++){
+                boot_sigmas.shed_row(dup4(i) - i);
+                boot_sigmas.shed_col(dup4(i) - i);
+            }
+            Delta_l.shed_rows(dup4);
+            Delta_bar.shed_rows(dup4);
+        } else {
+            boot_sigmas.shed_row(2);
+            boot_sigmas.shed_col(2);
+            Delta_l.shed_row(2);
+            Delta_bar.shed_row(2);
+        }
+    }
+    
+    // Get fixed lag results
+    Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L);
+    arma::colvec stats(L_max + 1, fill::zeros);
+    arma::colvec delta = covar_stats["delta"];
+    arma::mat covar = covar_stats["dep_cov"];
+    
+    // Compute null distribution of test statistics
+    arma::mat S_r_L_jin(B, L_max + 1, fill::zeros);
+    arma::mat S_r_L_bart(B, L_max + 1, fill::zeros);
+    arma::colvec Sample_S_r_L(L_max + 1, fill::zeros);
+    int dim = 0;
+    for (int r = 0; r < (L_max + 1); r++){
+         dim = (r + 1) * k * k - dupl - 1;
+        arma::mat sigma_inv = inv(boot_sigmas.slice(r).rows(0, dim).cols(0, dim));
+        arma::mat bart_inv = inv(boot_bart.rows(0, dim).cols(0, dim));
+        for (int l = 0; l < B; l++){
+            S_r_L_jin(l, r) = n * as_scalar(trans(diff.rows(0, dim).col(l)) * sigma_inv * diff.rows(0, dim).col(l)) - 2 * (k * k * r + (k * (k + 1) / 2));
+            S_r_L_bart(l, r) = n * as_scalar(trans(diff.rows(0, dim).col(l)) * bart_inv * diff.rows(0, dim).col(l)) - 2 * (k * k * r + (k * (k + 1) / 2));
+        }
+        Sample_S_r_L(r) = n * as_scalar(trans(delta.rows(0, dim)) * sigma_inv * delta.rows(0, dim))  - 2 * (k * k * r + (k * (k + 1) / 2));
+        stats(r) = n * as_scalar(trans(delta.rows(0, dim)) * solve(covar.rows(0, dim).cols(0, dim), delta.rows(0, dim))) - 2 * (k * k * r + (k * (k + 1) / 2));
+    }
 
+    // Get bootstrapped distributions
+    arma::colvec jin_H0 = max(S_r_L_jin, 1);
+    arma::colvec bart_H0 = max(S_r_L_bart, 1);
+
+    // Get test statistics
+    double jin_test = max(Sample_S_r_L);
+    double bart_test = max(stats);
+
+    // Get L hat
+    double jin_L = Sample_S_r_L.index_max();
+    double bart_L = stats.index_max();
+
+    // Get matrix associated with L hat
+    int dim_jin = (Sample_S_r_L.index_max() + 1) * k * k - dupl - 1;
+    arma::mat jin_cov = boot_sigmas.slice(jin_L).rows(0, dim_jin).cols(0, dim_jin);
+    int dim_bart = (stats.index_max() + 1) * k * k - dupl - 1;
+    arma::mat bart_cov = covar.rows(0, dim_bart).cols(0, dim_bart);
+
+    // Compute p-values
+    double jin_no_reject = sum(jin_H0 > jin_test);
+    double jin_pval = (jin_no_reject + 1) / (B + 1);
+    double bart_no_reject = sum(bart_H0 > bart_test);
+    double bart_pval = (bart_no_reject + 1) / (B + 1);
+    
+    return Rcpp::List::create(
+        Rcpp::Named("jin_stat") = jin_test,
+        Rcpp::Named("bart_stat") = bart_test,
+        Rcpp::Named("jin_L") = jin_L,
+        Rcpp::Named("bart_L") = bart_L,
+        Rcpp::Named("jin_cov") = jin_cov,
+        Rcpp::Named("bart_cov") = bart_cov,
+        Rcpp::Named("jin_pval") = jin_pval,
+        Rcpp::Named("bart_pval") = bart_pval);
+}
 
 

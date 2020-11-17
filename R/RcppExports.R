@@ -18,3 +18,7 @@ calculateTestStat <- function(delta, covar, n, L, k) {
     .Call(`_autocovarianceTesting_calculateTestStat`, delta, covar, n, L, k)
 }
 
+calculateBootTestStat <- function(X, Y, L, B, prewhiten) {
+    .Call(`_autocovarianceTesting_calculateBootTestStat`, X, Y, L, B, prewhiten)
+}
+

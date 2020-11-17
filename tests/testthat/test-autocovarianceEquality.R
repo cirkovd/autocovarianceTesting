@@ -368,4 +368,39 @@ test_that("Functions work", {
   # Univariate
   expect_equal(compare3, compare4, tolerance = 0.0000001)
   
+  
+  ## Tests for calculateBootTestStat function
+  
+  set.seed(123456)
+  n_sim <- 1000
+  n <- 1000
+  # # Generate 1000 independent VAR(1)'s under the null hypothesis. Look at rejection rate
+  # sim_data <- lapply(1:n_sim, function(x){list(X = cbind(matrix(arima.sim(list(ar = 0.8), n)), matrix(arima.sim(list(ar = 0.8), n))),
+  #                                              Y = cbind(matrix(arima.sim(list(ar = 0.8), n)), matrix(arima.sim(list(ar = 0.8), n))))})
+  # sim_results <- lapply(sim_data, function(x){calculateBootTestStat(x$X, x$Y, L = 5, B = 500, prewhiten = TRUE)})
+  # pvals <- matrix(unlist(lapply(1:n_sim, function(x){cbind(sim_results[[x]]$jin_pval, sim_results[[x]]$bart_pval)})) < 0.05, n_sim, 2, byrow = T)
+  # rej_rate1 <- colMeans(pvals)
+  wald_bound <- c(0.05 - 1.96 * sqrt(0.05 * 0.95 / n),  0.05 + 1.96 * sqrt(0.05 * 0.95 / n))
+  
+  # See if rejection rate falls into wald-based acceptable range
+  # expect_true(wald_bound[1] < rej_rate1[1] &  wald_bound[2] > rej_rate1[1])
+  # expect_true(wald_bound[1] < rej_rate1[2] &  wald_bound[2] > rej_rate1[2])
+  
+  # Generate 1000 dependent AR(1) under the null hypothesis. Look at rejection rate
+  sigma <- matrix(c(1, 0.8, 0.8, 1), 2, 2)
+  sim_data2 <- lapply(1:n_sim, function(x){
+    errors <- rmvnorm(n, c(0,0), sigma)
+    list(X = matrix(arima.sim(list(ar = 0.8), n, innov = errors[, 1])),
+         Y = matrix(arima.sim(list(ar = 0.8), n, innov = errors[, 2])))
+    })
+  sim_results2 <- lapply(sim_data2, function(x){calculateBootTestStat(x$X, x$Y, L = 5, B = 500, prewhiten = TRUE)})
+  pvals2 <- matrix(unlist(lapply(1:n_sim, function(x){cbind(sim_results2[[x]]$jin_pval, sim_results2[[x]]$bart_pval)})) < 0.05, n_sim, 2, byrow = T)
+  rej_rate2 <- colMeans(pvals2)
+
+  # See if rejection rate falls into wald-based acceptable range
+  expect_true(wald_bound[1] < rej_rate1[1] &  wald_bound[2] > rej_rate1[1])
+  
+  
+  
+  
 })
