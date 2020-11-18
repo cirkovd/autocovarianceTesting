@@ -285,7 +285,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     // no blocks
     int K = ceil(n/b);
     int L_max = 0;
-    if ( L == NULL ){
+    if ( L == 0 ){
         L_max = ceil(pow(log2(n), 0.999));
     } else {
         L_max = L;
@@ -405,7 +405,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
         arma::mat dup3 = arma::trimatu(dup2, 1);
         arma::uvec dup4 = find(vectorise(dup3));
         if ( k > 2){
-            for (int i = 0; i < dup4.n_elem; i++){
+            for (int i = 0; i < (int) dup4.n_elem; i++){
                 boot_sigmas.shed_row(dup4(i) - i);
                 boot_sigmas.shed_col(dup4(i) - i);
             }

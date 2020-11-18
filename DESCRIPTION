@@ -1,15 +1,17 @@
 Package: autocovarianceTesting
 Type: Package
-Title: For two stationary, possibly linearly dependent time series, perform a hypothesis test for equality of autocovariance functions up to a fixed lag by employing either a Bartlett-based or bootstrapped statistic. 
+Title: For two stationary, possibly linearly dependent time series, perform a hypothesis test for equality of autocovariance functions
 Version: 1.0
 Date: 2020-10-22
-Author:  c(person("Cirkovic", "Daniel", email = "cirkovd@stat.tamu.edu", role = c("aut", "cre")))
+Authors@R: person("Cirkovic", "Daniel", email = "cirkovd@stat.tamu.edu", role = c("aut", "cre"))
+Author: Daniel Cirkovic [aut, cre]
 Maintainer: Daniel Cirkovic <cirkovd@stat.tamu.edu>
-Description: Function that allows the user test for equality of autocovariance functions for two linearly dependent, stationary time series. The function allows the user to choose from four methods: (Weighted) Bartlett, (Weighted) Dependent Bartlett, Jin, Jin-Bartlett. The Bartlett test assumes independence of the series and uses Bartlett's formula to quantify the asymptotic covariance of the autocovariance differences. The Dependent Bartlett test is an extension of the Bartlett result to dependent series. The weighted versions of these tests emphasize earlier lag autocovariance differences. The Jin test employs a block of blocks bootstrap to approximate the asymptotic covariance matrix of autocovariance differences and selects the "optimal" lag when performing the test via an AIC-like penalty. The Jin-Bartlett test employs the same algorithm as the Jin test, but augments the asymptotic covariance estimate via Bartlett's formula. 
+Description: Function that allows the user test for equality of autocovariance functions for two linearly dependent, stationary time series. The function allows the user to choose from four methods: (Weighted) Independent, (Weighted) Dependent, Bootstrap-Jin, Bootstrap-Bartlett. The Independent test assumes independence of the series and uses Bartlett's formula to quantify the asymptotic covariance of the autocovariance differences. The Dependent test is an extension of the Independent result to dependent series. The weighted versions of these tests emphasize earlier lag autocovariance differences. The Bootstrap-Jin test employs a block of blocks bootstrap to approximate the asymptotic covariance matrix of autocovariance differences and selects the "optimal" lag when performing the test via an AIC-like penalty. The Bootstrap-Bartlett test employs the same algorithm as the Jin test, but augments the asymptotic covariance estimate via Bartlett's formula. 
 License: GPL (>=3)
 Imports: 
     Rcpp (>= 1.0.5)
-LinkingTo: Rcpp, RcppArmadillo, knitr
+LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.1.1
-Suggests: testthat, Matrix, mvtnorm, matrixcalc, parallel, forecast, microbenchmark, tidyverse
+Encoding: UTF-8
+Suggests: testthat, Matrix, mvtnorm, matrixcalc, parallel, forecast, microbenchmark, tidyverse, knitr
 Roxygen: list(markdown = TRUE)

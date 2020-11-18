@@ -55,19 +55,28 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
   
 }
 
-#' Title
+#' Test for equality of autocovariance functions for two (linearly dependent) stationary time series
 #'
-#' @param X 
-#' @param Y 
-#' @param L 
-#' @param test 
-#' @param B 
-#' @param prewhiten 
+#' @description Perform a hypothesis test for equality of autocovariance functions for two time series with one or more of the following methods: (Weighted) Independent, (Weighted) Dependent, Bootstrap-Jin and Bootstrap-Bartlett. The former two tests assess equality up to a fixed lag, while the latter two select the "optimal lag" for testing the hypothesis using an AIC-like penalty at each lag. The tests can handle multivariate time series, but the computations become considerably more intensive with an increase in dimension. 
 #'
-#' @return
-#' @export
+#' @param X filler
+#' @param Y filler
+#' @param L filler
+#' @param test filler
+#' @param B filler
+#' @param prewhiten filler
 #'
-#' @examples
+#' @return filler
+#' @export 
+#'
+#' @examples 
+#' # A filler example
+#' autocovarianceTest(matrix(rnorm(100)), matrix(rnorm(100)), 5)
+#' 
+#' # Another filler example
+#' autocovarianceTest(matrix(rnorm(100)), matrix(rnorm(100)), 5)
+#' 
+#' # Comment
 autocovarianceTest <- function(X, Y, L, test = "Dependent", B = 500, prewhiten = TRUE){
   
   # Compatibility Tests
@@ -89,16 +98,16 @@ autocovarianceTest <- function(X, Y, L, test = "Dependent", B = 500, prewhiten =
     if ("Independent" %in% test){
       indTest <- calculateTestStat(deltaCovar$delta, deltaCovar$ind_cov, n, L, k)
       # Compute p-values
-      indTest$pval <- pchisq(indTest$stat, df = indTest$df, lower.tail = FALSE)
-      indTest$weight_pval <- pgamma(indTest$weight_stat, shape = indTest$alpha, scale = indTest$beta, lower.tail = FALSE)
+      indTest$pval <- stats::pchisq(indTest$stat, df = indTest$df, lower.tail = FALSE)
+      indTest$weight_pval <- stats::pgamma(indTest$weight_stat, shape = indTest$alpha, scale = indTest$beta, lower.tail = FALSE)
       names(indTest) <- paste0("ind_",names(indTest))
       out <- c(out, indTest)
     }
     if ("Dependent" %in% test){
       depTest <- calculateTestStat(deltaCovar$delta, deltaCovar$dep_cov, n, L, k)
       # Compute p-values
-      depTest$pval <- pchisq(depTest$stat, df = depTest$df, lower.tail = FALSE)
-      depTest$weight_pval <- pgamma(depTest$weight_stat, shape = depTest$alpha, scale = depTest$beta, lower.tail = FALSE)
+      depTest$pval <- stats::pchisq(depTest$stat, df = depTest$df, lower.tail = FALSE)
+      depTest$weight_pval <- stats::pgamma(depTest$weight_stat, shape = depTest$alpha, scale = depTest$beta, lower.tail = FALSE)
       names(depTest) <- paste0("dep_",names(depTest))
       out <- c(out, depTest)
     }

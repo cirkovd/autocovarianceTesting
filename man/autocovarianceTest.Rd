@@ -2,36 +2,35 @@
 % Please edit documentation in R/autocovarianceTestingWrappers.R
 \name{autocovarianceTest}
 \alias{autocovarianceTest}
-\title{Title}
+\title{Test for equality of autocovariance functions for two (linearly dependent) stationary time series}
 \usage{
-autocovarianceTest(
-  X,
-  Y,
-  L,
-  test = "Dependent",
-  alpha = 0.05,
-  B = 500,
-  prewhiten = FALSE
-)
+autocovarianceTest(X, Y, L, test = "Dependent", B = 500, prewhiten = TRUE)
 }
 \arguments{
-\item{X}{}
+\item{X}{filler}
 
-\item{Y}{}
+\item{Y}{filler}
 
-\item{L}{}
+\item{L}{filler}
 
-\item{test}{}
+\item{test}{filler}
 
-\item{alpha}{}
+\item{B}{filler}
 
-\item{B}{}
-
-\item{prewhiten}{}
+\item{prewhiten}{filler}
 }
 \value{
-
+filler
 }
 \description{
-Title
+Perform a hypothesis test for equality of autocovariance functions for two time series with one or more of the following methods: (Weighted) Independent, (Weighted) Dependent, Bootstrap-Jin and Bootstrap-Bartlett. The former two tests assess equality up to a fixed lag, while the latter two select the "optimal lag" for testing the hypothesis using an AIC-like penalty at each lag. The tests can handle multivariate time series, but the computations become considerably more intensive with an increase in dimension.
+}
+\examples{
+# A filler example
+autocovarianceTest(matrix(rnorm(100)), matrix(rnorm(100)), 5)
+
+# Another filler example
+autocovarianceTest(matrix(rnorm(100)), matrix(rnorm(100)), 5)
+
+# Comment
 }

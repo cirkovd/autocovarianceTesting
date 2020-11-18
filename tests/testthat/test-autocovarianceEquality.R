@@ -12,7 +12,7 @@ test_that("Functions work", {
   library(Rcpp)
   library(autocovarianceTesting)
   library(microbenchmark)
-  
+
   ################################
   ## get.covar.matrix()
   ##
@@ -87,8 +87,8 @@ test_that("Functions work", {
     cov_mat <- cov_mat + t(cov_mat) - diag(diag(cov_mat))
     
     # create A matrix
-    A <- bdiag(rep(list(cbind(diag(2*k^2 - k), matrix(0,ncol=2*k, nrow=(2*k^2 - k)), -diag(2*k^2 - k))[rep(rep(c(T,F), k), each=k)[1:(2*k^2 - k)],]), L+1))
-    if(k==1) A <- t(A)
+    A <- as.matrix(bdiag(rep(list(cbind(diag(2*k^2 - k), matrix(0,ncol=2*k, nrow=(2*k^2 - k)), -diag(2*k^2 - k))[rep(rep(c(T,F), k), each=k)[1:(2*k^2 - k)],]), L+1)))
+    if(k==1){A <- t(A)}
     eta <- as.matrix(c(t(ccfs[n + 0:L,])))
     
     if (corr_only==TRUE){
@@ -101,7 +101,7 @@ test_that("Functions work", {
                                                                                                      ifelse(grepl("Y.Y", Var1) & grepl("Y.Y", Var3), terms, 0))))$terms
       cov_mat2 <- cov_mat2 + t(cov_mat2) - diag(diag(cov_mat2))
       
-      list(tcrossprod(A[1:(k^2*(L+1)), 1:(ncol(ccfs)*(L+1))], eta[1:(ncol(ccfs)*(L+1))]), 
+      list(tcrossprod(A[1:(k^2*(L+1)), 1:(ncol(ccfs)*(L+1))], t(eta[1:(ncol(ccfs)*(L+1))])), 
            tcrossprod(tcrossprod(A[1:(k^2*(L+1)), 1:(ncol(ccfs)*(L+1))], cov_mat[1:(ncol(ccfs)*(L+1)),1:(ncol(ccfs)*(L+1))]),A[1:(k^2*(L+1)), 1:(ncol(ccfs)*(L+1))]), #dependent
            tcrossprod(tcrossprod(A[1:(k^2*(L+1)), 1:(ncol(ccfs)*(L+1))], cov_mat2[1:(ncol(ccfs)*(L+1)),1:(ncol(ccfs)*(L+1))]),A[1:(k^2*(L+1)), 1:(ncol(ccfs)*(L+1))])) #independent
     }
