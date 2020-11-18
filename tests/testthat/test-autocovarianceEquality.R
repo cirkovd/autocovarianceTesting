@@ -387,20 +387,30 @@ test_that("Functions work", {
   # expect_true(wald_bound[1] < rej_rate1[2] &  wald_bound[2] > rej_rate1[2])
   
   # Generate 1000 dependent AR(1) under the null hypothesis. Look at rejection rate
-  sigma <- matrix(c(1, 0.8, 0.8, 1), 2, 2)
-  sim_data2 <- lapply(1:n_sim, function(x){
-    errors <- rmvnorm(n, c(0,0), sigma)
-    list(X = matrix(arima.sim(list(ar = 0.8), n, innov = errors[, 1])),
-         Y = matrix(arima.sim(list(ar = 0.8), n, innov = errors[, 2])))
-    })
-  sim_results2 <- lapply(sim_data2, function(x){calculateBootTestStat(x$X, x$Y, L = 5, B = 500, prewhiten = TRUE)})
-  pvals2 <- matrix(unlist(lapply(1:n_sim, function(x){cbind(sim_results2[[x]]$jin_pval, sim_results2[[x]]$bart_pval)})) < 0.05, n_sim, 2, byrow = T)
-  rej_rate2 <- colMeans(pvals2)
+  #sigma <- matrix(c(1, 0.8, 0.8, 1), 2, 2)
+  #sim_data2 <- lapply(1:n_sim, function(x){
+  #  errors <- rmvnorm(n, c(0,0), sigma)
+  #  list(X = matrix(arima.sim(list(ar = 0.8), n, innov = errors[, 1])),
+  #       Y = matrix(arima.sim(list(ar = 0.8), n, innov = errors[, 2])))
+  #  })
+  #sim_results2 <- lapply(sim_data2, function(x){calculateBootTestStat(x$X, x$Y, L = 5, B = 500, prewhiten = TRUE)})
+  #pvals2 <- matrix(unlist(lapply(1:n_sim, function(x){cbind(sim_results2[[x]]$jin_pval, sim_results2[[x]]$bart_pval)})) < 0.05, n_sim, 2, byrow = T)
+  #rej_rate2 <- colMeans(pvals2)
 
   # See if rejection rate falls into wald-based acceptable range
-  expect_true(wald_bound[1] < rej_rate1[1] &  wald_bound[2] > rej_rate1[1])
+  # expect_true(wald_bound[1] < rej_rate1[1] &  wald_bound[2] > rej_rate1[1])
   
+  # Gas furnance dataset example
+  set.seed(54321)
+  gas <- read.csv("gas-furnace.csv")
+  t <- 0:(nrow(gas) - 1)
+  # get residual series
+  gasRate <- lm(gas$InputGasRate ~ t)$residuals / sd(lm(gas$InputGasRate ~ t)$residuals)
+  gasCO2 <- lm(gas$CO2 ~ t)$residuals / sd(lm(gas$CO2 ~ t)$residuals)
+  plot(gasRate, type = "l")
+  plot(gasCO2, type = "l")
   
+  out <- autocovarianceTest(matrix(gasRate), matrix(gasCO2), L = 5, B = 2000, test = c("bootDependent", "bootBartlett"))
   
   
 })

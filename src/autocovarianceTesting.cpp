@@ -12,12 +12,6 @@ using namespace arma;
 
 // Function that, given two multivariate time series, computes the DEMEANED autocovariance function
 // of the concatenated series
-
-//' Compute computes the DEMEANED autocovariance function of two concatenated multivariate time series
-//' 
-//' @param X a time series
-//' @param Y a time series
-//' @export
 // [[Rcpp::export]]
 arma::cube calculateAutocovariance(const arma::mat & X, const arma::mat & Y, const int & maxLag){
     // Get some details from the inputs
@@ -61,6 +55,7 @@ arma::cube calculateAutocovariance(const arma::mat & X, const arma::mat & Y, con
     return acf;
 }
 
+// Function for bartlett's formula to compute asymptotic covariances of autocovariances
 double bartlettForumla(const arma::cube & acf_H0, const int trunc, const int a, const int b, const int c, const int d, const int p, const int q, const int n){
     arma::colvec cov = acf_H0(span(a, a), span(c, c), span(n - 1 - trunc,  n - 1 + trunc)) % acf_H0(span(b, b), span(d, d), span(n - 1 - trunc - p + q,  n - 1 + trunc - p + q)) + acf_H0(span(a, a), span(d, d), span(n - 1 - trunc + q,  n - 1 + trunc + q)) % acf_H0(span(b, b), span(c, c), span(n - 1 - trunc - p,  n - 1 + trunc - p));
     double covar = sum(cov);

@@ -9,7 +9,7 @@ Description: Function that allows the user test for equality of autocovariance f
 License: GPL (>=3)
 Imports: 
     Rcpp (>= 1.0.5)
-LinkingTo: Rcpp, RcppArmadillo
+LinkingTo: Rcpp, RcppArmadillo, knitr
 RoxygenNote: 7.1.1
-Suggests: testthat, tidyverse, Matrix, mvtnorm, matrixcalc, parallel, forecast, microbenchmark
+Suggests: testthat, Matrix, mvtnorm, matrixcalc, parallel, forecast, microbenchmark, tidyverse
 Roxygen: list(markdown = TRUE)
