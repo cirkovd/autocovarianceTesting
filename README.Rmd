@@ -2,7 +2,6 @@
 title: 'autocovarianceTesting: Test for Equality of Autocovariance Functions in Time
   Series'
 author: "Daniel Cirkovic"
-date: "11/18/2020"
 output: github_document
 ---
 
@@ -10,22 +9,14 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+The package 'autocovarianceTesting' implements multiple hypothesis tests for testing equality of autocovariance functions for two mean zero, stationary time series. The time series are allowed to be multivariate and linearly dependent. We implement methods assuming independence of the series from ["Testing equality of stationary autocovariances." Lund et. al (2009)](https://doi.org/10.1111/j.1467-9892.2009.00616.x) and new extensions to linearly dependent times series. We also implement a weighting mechanism to the former tests by borrowing ideas from ["New Weighted Portmanteau Statistics for Time Series Goodness of Fit Testing" Fisher and Gallagher (2012)](https://doi.org/10.1080/01621459.2012.688465). The package also implements bootstrap methods from ["A computational bootstrap procedure to compare two dependent time series" Jin et. al (2019)](https://doi.org/10.1080/00949655.2019.1639704), offering extensions to multivariate series. 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+'autocovarianceTesting' includes one function: `autocovarianceTest`. `autocovarianceTest` allows the the user to supply two time series and select from any combination of the previously mentioned methods to test for equality of autocovariance functions. Choices of methods are made through the `test` argument. See function documentation for more details.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Installation 
 
-```{r cars}
-summary(cars)
-```
+*To be filled in once package completed*
 
-## Including Plots
+## Example
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+*To be filled in once package completed*
