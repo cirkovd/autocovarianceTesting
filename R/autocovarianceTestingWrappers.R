@@ -28,9 +28,14 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
     stop(paste("X and Y can not have missing values"))
   }
   
+  # Set L if not supplied
+  if ( is.null(L) ){
+    L <- ceiling((log2(n))^0.9999)
+  }
+  
   # L must be numeric
-  if ( !is.numeric(L) ){
-    stop(paste("L must be numeric"))
+  if ( !is.numeric(L) | !((L == round(L)) & (L >= 0)) ){
+    stop(paste("L must be numeric and a positive integer"))
   }
   
   # L must be less than n
@@ -66,7 +71,7 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
 #'
 #' @param X a \eqn{n x m} mean zero (column-wise) stationary time series with \eqn{m < n}. Must be a matrix.
 #' @param Y a \eqn{n x m} mean zero (column-wise) stationary time series with \eqn{m < n}. Must be a matrix.
-#' @param L the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \eqn{L} less than the one supplied.
+#' @param L the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \eqn{L} less than the one supplied. If not supplied, \code{L = ceiling((log2(n))^0.9999)}.
 #' @param test the tests to be performed. Must be a vector containing a subset of \code{"Independent"}, \code{"Dependent"}, \code{"bootDependent"} and \code{"bootBartlett"}.
 #' @param B for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.
 #' @param prewhiten for the \code{"bootDependent"} and \code{"bootBartlett"} tests, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.
@@ -186,7 +191,7 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
 #' # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
 #' acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 #' 
-autocovarianceTest <- function(X, Y, L, test = "Dependent", B = 500, prewhiten = TRUE){
+autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prewhiten = TRUE){
   
   # Compatibility Tests
   compatibilityChecks(X, Y, L, test, B, prewhiten)
