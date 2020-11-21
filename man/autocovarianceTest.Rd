@@ -10,7 +10,8 @@ autocovarianceTest(
   L = NULL,
   test = "Dependent",
   B = 500,
-  prewhiten = TRUE
+  prewhiten = TRUE,
+  plot = TRUE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ autocovarianceTest(
 \item{B}{for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.}
 
 \item{prewhiten}{for the \code{"bootDependent"} and \code{"bootBartlett"} tests, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.}
+
+\item{plot}{should a plot of the tested sample autocovariances be made?}
 }
 \value{
 A named list containing many relevant statistics pertaining to each test

@@ -1,12 +1,15 @@
 ## usethis namespace: start
 #' @importFrom Rcpp sourceCpp
+#' @import ggplot2
 ## usethis namespace: end
 NULL
 #' @useDynLib autocovarianceTesting, .registration=TRUE
 #' 
 
+library(ggplot2)
+
 # Function to run compatibility checks
-compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
+compatibilityChecks <- function(X, Y, L, test, B, prewhiten, plot){
   # Get ts length
   n <- nrow(X)
   
@@ -65,7 +68,43 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
     stop(paste("prewhiten must be logical"))
   }
   
+  # plot must be boolean
+  if ( !is.logical(plot) ){
+    stop(paste("plot must be logical"))
+  }
+  
   return(L)
+}
+
+# Function to create a autocovariance difference plot
+acvfPlot <- function(X, Y, L){
+  # Get time series dimension
+  k <- ncol(X)
+  
+  # Get autocovariance up to lag 6
+  acvf <- stats::acf(cbind(X, Y), lag.max = L, type = "covariance", plot = FALSE)$acf
+  
+  # Shape data for plotting
+  acvfX <- data.frame(acvf = c(acvf[ , 1:k, 1:k]), lags = 0:L, dim1 = rep(paste("Dim", 1:k), each = (L + 1) * k ), dim2 = rep(rep(paste("Dim", 1:k), each = L + 1), k), timeseries = "X")
+  acvfY <- data.frame(acvf = c(acvf[ , (k + 1):(2 * k), (k + 1):(2 * k)]), lags = 0:L, dim1 = rep(paste("Dim", 1:k), each = (L + 1) * k ), dim2 = rep(rep(paste("Dim", 1:k), each = L + 1), k), timeseries = "Y")
+  plot_data <- rbind(acvfX, acvfY)
+  plot_data$lags <- factor(plot_data$lags)
+  
+  # Create a plot
+  plot <- ggplot() +
+    geom_hline(yintercept = 0, color = "grey60") +
+    geom_bar(aes_string(x = "lags", y = "acvf", fill = "timeseries"), stat = "identity", position = position_dodge(width=0.5), width = 0.4, data = plot_data) +
+    facet_grid(dim2 ~ dim1) +
+    scale_fill_manual(values = c("X" = "#000033", "Y" = "#800000")) +
+    scale_x_discrete(drop = FALSE) +
+    theme_bw() +
+    theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), 
+          panel.grid.major.y = element_line(linetype = "dashed"), panel.grid.minor.y = element_line(linetype = "dashed"),
+          legend.position = "none", axis.ticks = element_blank(), strip.background = element_rect(fill = "grey90", size = 1)) +
+    labs(fill = "Time Series", x = "Lag", y = "ACVF", title = "Autocovariance Function of Series X and Y")
+  
+  print(plot)
+  
 }
 
 #' Test for equality of autocovariance functions for two (linearly dependent) stationary time series
@@ -78,6 +117,7 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
 #' @param test the tests to be performed. Must be a vector containing a subset of \code{"Independent"}, \code{"Dependent"}, \code{"bootDependent"} and \code{"bootBartlett"}.
 #' @param B for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.
 #' @param prewhiten for the \code{"bootDependent"} and \code{"bootBartlett"} tests, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.
+#' @param plot should a plot of the tested sample autocovariances be made?
 #'
 #' @return A named list containing many relevant statistics pertaining to each test
 #' \itemize{
@@ -194,10 +234,10 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
 #' # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
 #' acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 #' 
-autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prewhiten = TRUE){
+autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prewhiten = TRUE, plot = TRUE){
   
   # Compatibility Tests and reassign L if need be
-  L <- compatibilityChecks(X, Y, L, test, B, prewhiten)
+  L <- compatibilityChecks(X, Y, L, test, B, prewhiten, plot)
   
   # Get some info
   n <- nrow(X)
@@ -282,6 +322,11 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prew
     # Add boot Bartlett tests
     out_table_boot <- rbind(out_table_boot, c("Bootstrap-Bartlett", round(out$bart_stat, 3), round(out$bart_L, 3), round(out$bart_pval, 3)))
     colnames(out_table_boot) <- c("Test", "Statitic", "L hat", "p-value")
+  }
+  
+  # Plot 
+  if( plot == TRUE ){
+    acvfPlot(X, Y, L)
   }
   
   # Set up knitr output
