@@ -7,6 +7,8 @@ NULL
 
 # Function to run compatibility checks
 compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
+  # Get ts length
+  n <- nrow(X)
   
   # X and Y must be matrices
   if ( (!(is.matrix(X))) | (!(is.matrix(Y))) ){
@@ -39,12 +41,12 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
   }
   
   # L must be less than n
-  if ( L >= nrow(X) ){
+  if ( L >= n ){
     stop(paste("L must be strictly less than n the length of the series"))
   }
   
-  # L must be larger than n
-  if ( ncol(X) >= nrow(X) ){
+  # Dimension of time series must be smaller than n
+  if ( ncol(X) >= n ){
     stop(paste("The dimension of the series must be smaller than its length"))
   }
   
@@ -63,6 +65,7 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
     stop(paste("prewhiten must be logical"))
   }
   
+  return(L)
 }
 
 #' Test for equality of autocovariance functions for two (linearly dependent) stationary time series
@@ -193,8 +196,8 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten){
 #' 
 autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prewhiten = TRUE){
   
-  # Compatibility Tests
-  compatibilityChecks(X, Y, L, test, B, prewhiten)
+  # Compatibility Tests and reassign L if need be
+  L <- compatibilityChecks(X, Y, L, test, B, prewhiten)
   
   # Get some info
   n <- nrow(X)
@@ -230,7 +233,9 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prew
   # Compute bootstrapped tests if need be
   if ("bootDependent" %in% test | "bootBartlett" %in% test){
     bootTest <- calculateBootTestStat(X, Y, L, B, prewhiten)
-    out <- c(out, bootTest)
+    if("bootDependent" %in% test & !("bootBartlett" %in% test)){ out <- c(out, bootTest[seq(1, 7, by = 2)]) }
+    if(!("bootDependent" %in% test) & "bootBartlett" %in% test){ out <- c(out, bootTest[seq(2, 8, by = 2)]) }
+    if("bootDependent" %in% test & "bootBartlett" %in% test){ out <- c(out, bootTest) }
   }
   
   # Create a nice table to output

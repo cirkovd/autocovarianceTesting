@@ -4,14 +4,21 @@
 \alias{autocovarianceTest}
 \title{Test for equality of autocovariance functions for two (linearly dependent) stationary time series}
 \usage{
-autocovarianceTest(X, Y, L, test = "Dependent", B = 500, prewhiten = TRUE)
+autocovarianceTest(
+  X,
+  Y,
+  L = NULL,
+  test = "Dependent",
+  B = 500,
+  prewhiten = TRUE
+)
 }
 \arguments{
 \item{X}{a \eqn{n x m} mean zero (column-wise) stationary time series with \eqn{m < n}. Must be a matrix.}
 
 \item{Y}{a \eqn{n x m} mean zero (column-wise) stationary time series with \eqn{m < n}. Must be a matrix.}
 
-\item{L}{the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \eqn{L} less than the one supplied.}
+\item{L}{the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \eqn{L} less than the one supplied. If not supplied, \code{L = ceiling((log2(n))^0.9999)}.}
 
 \item{test}{the tests to be performed. Must be a vector containing a subset of \code{"Independent"}, \code{"Dependent"}, \code{"bootDependent"} and \code{"bootBartlett"}.}
 
