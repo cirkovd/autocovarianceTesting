@@ -26,10 +26,114 @@ for equality of autocovariance functions. Choices of methods are made
 through the `test` argument. See function documentation for more
 details.
 
-## Installation
-
-*To be filled in once package completed*
-
 ## Example
 
-*To be filled in once package completed*
+For monthly change in US consumption and income from 1970 to 2016, test
+if the autocovariance structure of the series differ up to lag 12.
+
+``` r
+library(autocovarianceTesting)
+library(fpp2) # not needed for package, just used for data
+head(uschange)
+```
+
+    ##         Consumption     Income Production   Savings Unemployment
+    ## 1970 Q1   0.6159862  0.9722610 -2.4527003 4.8103115          0.9
+    ## 1970 Q2   0.4603757  1.1690847 -0.5515251 7.2879923          0.5
+    ## 1970 Q3   0.8767914  1.5532705 -0.3587079 7.2890131          0.5
+    ## 1970 Q4  -0.2742451 -0.2552724 -2.1854549 0.9852296          0.7
+    ## 1971 Q1   1.8973708  1.9871536  1.9097341 3.6577706         -0.1
+    ## 1971 Q2   0.9119929  1.4473342  0.9015358 6.0513418         -0.1
+
+``` r
+# Structure data
+t <- time(uschange)
+# US consumption
+usconsumption <- matrix(uschange[ ,1])
+# US income
+usincome <- matrix(uschange[ ,2])
+
+# Plot the two datasets, no obvious skewness, minor outliers
+plot(t, usconsumption, type = "l", xlab = "Time", ylab = "Consumption")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+
+``` r
+plot(t, usincome, type = "l", xlab = "Time", ylab = "Income")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-2.png)<!-- -->
+
+``` r
+# The series exhibit clear dependence
+ccf(c(usconsumption), c(usincome), main = "Cross-Correlation Function")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-3.png)<!-- -->
+
+Since the series exhibit clear correlation, only use the dependent tests
+provided in `autocovarianceTest`.
+
+``` r
+# Make the series mean zero
+usconsumption <- usconsumption - mean(usconsumption)
+usincome <- usincome - mean(usincome)
+
+set.seed(4321)
+# Run test for up to lag 12
+autocovarianceTest(usconsumption, usincome, L = 12, 
+                   test = c("Dependent", "bootBartlett", "bootDependent"),
+                   B = 1000, prewhiten = TRUE, plot = TRUE)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+<table class="kable_wrapper">
+
+<tbody>
+
+<tr>
+
+<td>
+
+| Test      | Chi-Sq | df | p-value |
+| :-------- | :----- | :- | :------ |
+| Dependent | 59.006 | 13 | 0       |
+
+Fixed Lag Tests
+
+</td>
+
+<td>
+
+| Test               | Gamma  | alpha | beta  | p-value |
+| :----------------- | :----- | :---- | :---- | :------ |
+| Weighted Dependent | 50.911 | 3.517 | 1.392 | 0       |
+
+Weighted Fixed Lag Tests
+
+</td>
+
+<td>
+
+| Test               | Statitic | L hat | p-value |
+| :----------------- | :------- | :---- | :------ |
+| Bootstrap-Jin      | 10.669   | 6     | 0.007   |
+| Bootstrap-Bartlett | 34.804   | 3     | 0.009   |
+
+Automatic Lag Selection Tests
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+All tests reject the null hypothesis of equality of autocovariances up
+to lag 12.
+
+For more on assumption checking and general function use, please see the
+vignette.
