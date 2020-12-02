@@ -284,12 +284,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     int b = floor(std::max(0.5 * cbrt(n), 2.0));
     // no blocks
     int K = ceil(n/b);
-    int L_max = 0;
-    if ( L == 0 ){
-        L_max = ceil(pow(log2(n), 0.999));
-    } else {
-        L_max = L;
-    }
+    int L_max = L;
     
     // Do bootstrap algorithm
     arma::mat X_Z = trans(Z.cols(0, k - 1));

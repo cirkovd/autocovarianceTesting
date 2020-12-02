@@ -12,5 +12,16 @@ Imports: Rcpp (>= 1.0.5), ggplot2
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.1.1
 Encoding: UTF-8
-Suggests: testthat, Matrix, mvtnorm, matrixcalc, parallel, forecast, microbenchmark, tidyverse, knitr
+Suggests: 
+    testthat,
+    Matrix,
+    mvtnorm,
+    matrixcalc,
+    parallel,
+    forecast,
+    microbenchmark,
+    tidyverse,
+    knitr,
+    rmarkdown
 Roxygen: list(markdown = TRUE)
+VignetteBuilder: knitr
