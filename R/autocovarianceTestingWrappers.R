@@ -339,3 +339,20 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prew
   return(invisible(out))
   
 }
+
+#' Monthly High Temperatures in New York and Cleveland from 1960 to 2019
+#'
+#' @docType data
+#'
+#' @usage data(cityTemps)
+#'
+#' @format An object of class \code{"data.frame"} with 1440 rows and 4 columns.
+#' \describe{
+#'   \item{City}{city, CLE or NYC}
+#'   \item{Year}{year}
+#'   \item{Month }{month}
+#'   \item{TMAX}{high temperature (degrees Farenheit)}
+#' }
+#'
+#' @source https://www.ncdc.noaa.gov/cdo-web/datatools/findstation
+"cityTemps"

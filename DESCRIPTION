@@ -22,6 +22,8 @@ Suggests:
     microbenchmark,
     tidyverse,
     knitr,
-    rmarkdown
+    rmarkdown,
+    lubridate
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
+LazyData: true

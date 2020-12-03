@@ -1,6 +1,7 @@
 ---
 title: "Using autocovarianceTesting"
 output: rmarkdown::html_vignette
+bibliography: biblio.bib
 vignette: >
   %\VignetteIndexEntry{Using autocovarianceTesting}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,6 +15,134 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, warning = FALSE, message = FALSE}
 library(autocovarianceTesting)
+library(tidyverse)
+library(lubridate)
 ```
+
+Let $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ be two $m$-dimensional zero mean stationary, and potentially dependent time series of the same length $n$ with $n \geq m \geq 1$. Define the autocovariance function of $\mathbf{X}_t$ at lag $k$ as
+
+\begin{equation*}
+    \Gamma_{\mathbf{X}}(k) = E [ \mathbf{X}_{t} \mathbf{X}_{t-k}' ] = 
+    \begin{bmatrix}
+    \gamma_{X_1 X_1} (k) & \cdots & \gamma_{X_1 X_m} (k) \\
+    \vdots & \ddots & \vdots \\
+    \gamma_{X_m X_1}(k) & \cdots & \gamma_{X_m X_m}(k)
+    \end{bmatrix}
+\end{equation*}
+
+See @BrockwellDavis:1991, among other sources, for definitions of the above terminology. The `autocovarianceTest` function tests the following hypothesis:
+
+\[ H_0: \gamma_{X_i X_j}(l) =  \gamma_{Y_i Y_j}(l) \hspace{2mm} \text{ vs } \hspace{2mm}  H_A: \gamma_{X_i X_j}(l) \neq \gamma_{Y_i Y_j}(l) \] 
+
+for $1 \leq i, j \leq m$ and $1 \leq l \leq L$ where $L$ is a fixed constant less than $n$. To test the hypothesis, `autocovarianceTest` provides four methods: `"Independent"`, `"Dependent"`, `"bootDependent"` and `"bootBartlett"`. The choice of method should rest heavily on their assumptions, which this document is made to clarify.
+
+## Independent & Dependent tests
+
+@lund2009testing first proposed the `"Independent"` test. The `"Dedependent"` test is an extension of the `"Independent"` test that allows $\mathbf{X}_t$ and $\mathbf{Y}_t$ to be linearly dependent. Both tests quantify the asymptotic distribution of the autocovariances (and thus their differences) under the null hypothesis through Bartlett's Theorem. 
+
+<hr>
+**Theorem:**(Multivariate Bartlett's Theorem) Let $\mathbf{Z}_t$ be a $m$-dimensional stationary processes with representation
+\begin{equation*}
+\mathbf{Z}_t = \sum_{k= -\infty}^{\infty} \mathbf{\Psi}_k \mathbf{E}_{t-k} \hspace{4mm} \mathbf{E}_t \sim \text{IID}(\mathbf{0},\mathbf{\Sigma})
+\end{equation*}
+where $\mathbf{E}_t$ has finite fourth moment and ${\displaystyle \sum_{k = -\infty}^{\infty} \sqrt{|k|} \mathbf{\Psi}_k < \infty}$ (in a component-by-component sense). Then, given a fixed lag $L$
+\begin{equation*}
+\sqrt{n} (\hat{\mathbf{\Lambda}} - \mathbf{\Lambda}) \xrightarrow{d} MVN \left( \mathbf{0}, \mathbf{W} \right)
+\end{equation*}
+as $n \rightarrow \infty$ where $\mathbf{\Lambda} = [\text{vec}(\Gamma_{\mathbf{Z}}(0))' \cdots \text{vec}(\Gamma_{\mathbf{Z}}(L))']'$. If $\mathbf{Z}_t$ is Gaussian, we can compute the entries of $\mathbf{W}$ using
+\begin{align*}
+& \lim_{n \rightarrow \infty} n \text{Cov}(\hat{\gamma}_{ab}(p), \hat{\gamma}_{cd}(q)) = \sum_{r = - \infty}^\infty  \gamma_{ac}(r)\gamma_{bd}(r - p + q) +  \gamma_{ad}(r + q) \gamma_{bc}(r - p)
+\end{align*}
+<hr>
+
+The key observation here is that in order to evaluate the asymptotic distribution of the autocovariances, one must assume the underlying series are *Gaussian*.
+
+So in summary, to perform the `"Independent"` or `"Dependent"` tests, one must assume
+
+* $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ are **mean zero**, **stationary**, and **Gaussian**.
+* for the `"Independent"` test, $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ must be **independent**.
+* for the `"Dependent"` test, $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ can be **linearly dependent** or  **independent** without penalty.
+
+In addition, the `"Independent"` or `"Dependent"` tests compute weighted variants. The weighted variants place emphasis on lower lag autocovariances by applying the weights $1, \frac{L}{L + 1}, \frac{L - 1}{L + 1}, \dots, \frac{1}{L + 1}$ to the autocovariance functions at lags $0, 1, 2, \dots L$, respectively. In short memory situations, this may enhance hypothesis test accuracy. Further, this weighting diminshes inaccuracy in estimating higher lag autocovariances, so it may be beneficial when testing with a large $L$. See @FisherGallagher:2012 for more discussion on this idea.
+
+## bootDependent & bootBartlett tests
+
+A key assumption in the `"Independent"` and `"Dependent"` tests are that $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ are Gaussian. But what if they are not? @jin2019computational tackled this problem by employing a blocks of blocks bootstrap to approximate the sampling distribution of the autocovariance differences between $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$. This procedure relaxes the Gaussianity assumption imposed by the previously mentioned tests. We refer to this test as the `"bootDependent"` test.
+
+In employing the `"bootDependent"` test, @jin2019computational constructs a boostrapped estimate of the asymptotic covariance matrix of the autocovariance differences (see their paper for more details). We offer an alternative boostrapped covariance by applying the Bartlett covariance estimate used in the `"Dependent"` test to each boostrap resample, which potentially improves Type I error rates but at a relatively large computational cost. We refer to this alternative as the `"bootBarlett"` test.
+
+The `"bootDependent"` and `"bootBarlett"` test have some additional desirable properties under both the null and alternative hypothesis. They achieve this my penalizing their test statistics (which are monotone increasing with $L$) based on an AIC-type criteria. This selects the "optimal" lag to evaluate the hypothesis with. Thus, $L$ here takes on a different meaning. It is the maximum lag that is considered when performing the test, not necessarily the lag at which the test will be performed with.
+
+In summary, to perform the `"bootDependent"` or `"bootBarlett"` tests, one must assume
+
+* $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ are **mean zero** and **stationary**
+* $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ can either be **independent** or **linearly dependent**
+
+See @jin2019computational and `autocovarianceTest()` function documentation for specification of prewhitening and boostrap parameters.
+
+## An example
+
+Let us look at monthly high temperatures in New York and Cleveland from 1960 to 2019. Intuitively, we expect the autocovariance functions of these series to differ due to the bodies of water that surround them (Lake Erie and the Atlantic) having differing effects on their respective climates. We will test up to lag $L = 5$.
+
+```{r, fig.width = 7.1, fig.height = 4}
+# View data
+head(cityTemps)
+# Create a date variable for plotting
+cityTemps$Date <- ymd(paste(cityTemps$Year, "-", cityTemps$Month, "-", 1))
+
+# Plot
+ggplot() +
+  geom_line(aes(x = Date, y = TMAX, color = City), data = cityTemps) +
+  facet_grid(City ~ .) +
+  theme_bw()
+```
+
+As can be easily seen, the series are certainly not stationary nor mean zero. They exhibit clear seasonality. To transform to stationarity, we will standardize by monthly means and standard deviations
+
+```{r, warning = FALSE, message = FALSE, fig.width = 7.1, fig.height = 4}
+# Compute monthly means and standard deviations
+month_stats <- cityTemps %>%
+  group_by(City, Month) %>%
+  summarize(mean_temp = mean(TMAX), sd_temp = sd(TMAX))
+
+# Join the datasets and create a standardized temperature
+cityTemps2 <- left_join(cityTemps, month_stats, by = c("City", "Month")) %>%
+  mutate(std_temp = (TMAX - mean_temp)/sd_temp)
+
+# Replot and check for stationarity
+ggplot() +
+  geom_line(aes(x = Date, y = std_temp, color = City), data = cityTemps2) +
+  facet_grid(City ~ .) +
+  theme_bw()
+```
+
+Now the series are reasonably stationary! Let's check if they exhibit any linear dependence.
+
+```{r, fig.width = 7.1, fig.height = 4}
+NYC <- cityTemps2$std_temp[cityTemps2$City == "NYC"]
+CLE <- cityTemps2$std_temp[cityTemps2$City == "CLE"]
+
+# Look and the cross-correlation function
+ccf(NYC, CLE)
+```
+
+The plot of the cross-correlation function clearly suggests that the two series exhibit linear dependence at multiple lags. Thus when testing, we should not use the `"Independent"` test. However we will show it here just as an example of what can go wrong when violating an assumption.
+
+```{r, results = 'asis', fig.width = 7.1, fig.height = 4}
+# Make sure the series are column matrices as in the documentation
+NYC <- matrix(NYC)
+CLE <- matrix(CLE)
+
+set.seed(1234)
+autocovarianceTest(X = NYC, Y = CLE, L = 5, 
+                   test = c("Independent", "Dependent", "bootDependent", "bootBartlett"), 
+                   B = 500, prewhiten = TRUE, plot = TRUE)
+```
+
+Interestingly, when violating the independence assumption, the `"Independent"` tests fail to reject the null hypothesis, giving a different outcome than the other unweighted tests. In this case, emphasizing earlier lags also results in a failure to reject the null hypothesis. Given the Gaussian nature of the series, I would trust the `"Dedependent"` unweighted test the most, whose conclusion is further bolstered by the 
+`"bootDependent"` and `"bootBartlett"` tests.
+
+## References
+
