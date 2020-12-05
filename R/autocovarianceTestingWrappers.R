@@ -9,7 +9,7 @@ NULL
 library(ggplot2)
 
 # Function to run compatibility checks
-compatibilityChecks <- function(X, Y, L, test, B, prewhiten, plot){
+compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
   # Get ts length
   n <- nrow(X)
   
@@ -48,6 +48,21 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten, plot){
     stop(paste("L must be strictly less than n the length of the series"))
   }
   
+  # Set b if not supplied
+  if ( is.null(b) ){
+    b <- max(floor(0.5 * n^(1/3)), 2)
+  }
+  
+  # b must be numeric
+  if ( !is.numeric(b) | !((b == round(b)) & (b >= 2)) ){
+    stop(paste("b must be an integer and larger than 2"))
+  }
+  
+  # b must be less than n
+  if ( b >= n ){
+    stop(paste("b must be strictly less than n the length of the series"))
+  }
+  
   # Dimension of time series must be smaller than n
   if ( ncol(X) >= n ){
     stop(paste("The dimension of the series must be smaller than its length"))
@@ -59,8 +74,8 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten, plot){
   }
   
   # B must be numeric
-  if ( !is.numeric(B) ){
-    stop(paste("B must be numeric"))
+  if ( !is.numeric(B) | !((B == round(B)) & (B >= 1)) ){
+    stop(paste("B must be an integer and larger than 1"))
   }
   
   # prewhiten must be boolean
@@ -73,7 +88,7 @@ compatibilityChecks <- function(X, Y, L, test, B, prewhiten, plot){
     stop(paste("plot must be logical"))
   }
   
-  return(L)
+  return(list(L, b))
 }
 
 # Function to create a autocovariance difference plot
@@ -109,13 +124,14 @@ acvfPlot <- function(X, Y, L){
 
 #' Test for equality of autocovariance functions for two (linearly dependent) stationary time series
 #'
-#' @description Perform a hypothesis test for equality of autocovariance functions for two time series with one or more of the following methods: (Weighted) Independent, (Weighted) Dependent, Bootstrap-Jin and Bootstrap-Bartlett. The former two tests assess equality up to a fixed lag, while the latter two select the "optimal lag" for testing the hypothesis using an AIC-like penalty at each lag. The tests can handle multivariate time series, but the computations become considerably more intensive with an increase in dimension. 
+#' @description Perform a hypothesis test for equality of autocovariance functions for two time series with one or more of the following methods: (Weighted) Independent, (Weighted) Dependent, Bootstrapped Dependent and Bootstrapped Bartlett. The former two tests assess equality up to a fixed lag, while the latter two select the "optimal lag" for testing the hypothesis using an AIC-like penalty at each lag. The tests can handle multivariate time series, but the computations become considerably more intense with an increase in dimension. 
 #'
 #' @param X a \eqn{n x m} mean zero (column-wise) stationary time series with \eqn{m < n}. Must be a matrix.
 #' @param Y a \eqn{n x m} mean zero (column-wise) stationary time series with \eqn{m < n}. Must be a matrix.
 #' @param L the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \eqn{L} less than the one supplied. If not supplied, \code{L = ceiling((log2(n))^0.9999)}.
 #' @param test the tests to be performed. Must be a vector containing a subset of \code{"Independent"}, \code{"Dependent"}, \code{"bootDependent"} and \code{"bootBartlett"}.
 #' @param B for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.
+#' @param b for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{b = max(floor(0.5 * n^(1/3)), 2)}.
 #' @param prewhiten for the \code{"bootDependent"} and \code{"bootBartlett"} tests, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.
 #' @param plot should a plot of the tested sample autocovariances be made?
 #'
@@ -159,11 +175,13 @@ acvfPlot <- function(X, Y, L){
 #' parameters, \code{ind_alpha} and \code{ind_beta}, and the associated p-value \code{ind_weight_pval}. The same statistics for \code{"Dependent"} are given by \code{dep_weight_stat}, \code{dep_alpha}, \code{dep_beta} and \code{dep_weight_pval}. All previously mentioned tests
 #' require Gaussianity of the series. The following two tests can be applied to series with non-normal distributions. 
 #' 
-#' The \code{"bootDependent"} (see Jin et. al (2019)) and \code{"bootBartlett"} tests compute a similar test statistic to the \code{"Dependent"} tests but through a block of blocks bootstrap. The original test statistic is monotone increasing with lag, so the tests apply
+#' The \code{"bootDependent"} (see Jin et. al (2019)) and \code{"bootBartlett"} tests compute a similar test statistic to the \code{"Dependent"} test but through a block of blocks bootstrap. The original test statistic is monotone increasing with lag, so the tests apply
 #' an AIC-like penalty to choose the "best" lag (up to \code{L}) to perform the hypothesis test with. This provides some desirable properties under the alternative hypothesis. \code{prewhiten = TRUE} fits a large VAR(p) process to \code{X} and \code{Y} and then applies 
-#' the tests to the residuals of said process. It is highly recommended to as prewhitening improves empirical rejection rates. \code{B} controls the number of bootstrap resamples used in the \code{"bootDependent"} and \code{"bootBartlett"} tests. \code{"bootBartlett"} replaces the Jin 
+#' the tests to the residuals of said process. It is highly recommended as prewhitening improves empirical rejection rates. \code{B} and \code{b} control the number of bootstrap resamples and block length used in the \code{"bootDependent"} and \code{"bootBartlett"} tests. \code{"bootBartlett"} replaces the Jin 
 #' et. al (2019) covariance estimate with the \code{"Dependent"} estimate averaged over each bootstrap resample. For the \code{"bootDependent"} test, \code{autocovarianceTest} outputs the test statistic, \code{jin_stat}, the optimally selected lag, \code{jin_L}, the 
 #' estimated covariance under the null, \code{jin_cov}, and psuedo p-value \code{jin_pval}. The same statistics for \code{"bootBartlett"} are given by \code{bart_stat}, \code{bart_L}, \code{bart_cov} and \code{bart_pval}.
+#' 
+#' For more on key assumptions behind each of the tests and a thorough example, please see the vignette. 
 #' 
 #' @references Brockwell, P. J., and Davis, R. A. (1991). \emph{Time series: theory and methods (Second ed.). New York: Springer-Verlag. }\cr 
 #' \cr Fisher, T. J., and Gallagher, C. M. (2012).  \emph{New weighted portmanteau statistics for time series goodness  of  fit  testing, J.  Amer.  Statist.  Assoc., 107(498),  777–787}\cr 
@@ -234,10 +252,16 @@ acvfPlot <- function(X, Y, L){
 #' # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
 #' acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 #' 
-autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prewhiten = TRUE, plot = TRUE){
+autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, b = NULL, prewhiten = TRUE, plot = TRUE){
+  
+  # If X and Y are vectors, put them in the correct format
+  X <- t(t(X))
+  Y <- t(t(Y))
   
   # Compatibility Tests and reassign L if need be
-  L <- compatibilityChecks(X, Y, L, test, B, prewhiten, plot)
+  Lb <- compatibilityChecks(X, Y, L, test, B, b, prewhiten, plot)
+  L <- Lb[[1]]
+  b <- Lb[[2]]
   
   # Get some info
   n <- nrow(X)
@@ -272,7 +296,7 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prew
   
   # Compute bootstrapped tests if need be
   if ("bootDependent" %in% test | "bootBartlett" %in% test){
-    bootTest <- calculateBootTestStat(X, Y, L, B, prewhiten)
+    bootTest <- calculateBootTestStat(X, Y, L, B, b, prewhiten)
     if("bootDependent" %in% test & !("bootBartlett" %in% test)){ out <- c(out, bootTest[seq(1, 7, by = 2)]) }
     if(!("bootDependent" %in% test) & "bootBartlett" %in% test){ out <- c(out, bootTest[seq(2, 8, by = 2)]) }
     if("bootDependent" %in% test & "bootBartlett" %in% test){ out <- c(out, bootTest) }
@@ -341,6 +365,8 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prew
 }
 
 #' Monthly High Temperatures in New York and Cleveland from 1960 to 2019
+#' 
+#' @description Monthly high temperatures in New York City and Cleveland from 1960 to 2019. The stations that record the data are located at Cleveland Hopkins International Airport and John F. Kennedy International Airport.
 #'
 #' @docType data
 #'
@@ -348,11 +374,12 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, prew
 #'
 #' @format An object of class \code{"data.frame"} with 1440 rows and 4 columns.
 #' \describe{
-#'   \item{City}{city, CLE or NYC}
-#'   \item{Year}{year}
-#'   \item{Month }{month}
-#'   \item{TMAX}{high temperature (degrees Farenheit)}
+#'   \item{City}{the city, CLE or NYC.}
+#'   \item{Year}{the year of the high temperature.}
+#'   \item{Month }{the month of the high temperature.}
+#'   \item{TMAX}{the high temperature (degrees Farenheit).}
 #' }
 #'
 #' @source https://www.ncdc.noaa.gov/cdo-web/datatools/findstation
+#' 
 "cityTemps"

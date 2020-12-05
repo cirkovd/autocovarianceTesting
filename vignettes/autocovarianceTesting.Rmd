@@ -21,7 +21,7 @@ library(tidyverse)
 library(lubridate)
 ```
 
-Let $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ be two $m$-dimensional zero mean stationary, and potentially dependent time series of the same length $n$ with $n \geq m \geq 1$. Define the autocovariance function of $\mathbf{X}_t$ at lag $k$ as
+Let $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ be two $m$-dimensional zero mean stationary, and potentially dependent time series of the same length $n$ with $n > m \geq 1$. Define the autocovariance function of $\mathbf{X}_t$ at lag $k$ as
 
 \begin{equation*}
     \Gamma_{\mathbf{X}}(k) = E [ \mathbf{X}_{t} \mathbf{X}_{t-k}' ] = 
@@ -40,7 +40,7 @@ for $1 \leq i, j \leq m$ and $1 \leq l \leq L$ where $L$ is a fixed constant les
 
 ## Independent & Dependent tests
 
-@lund2009testing first proposed the `"Independent"` test. The `"Dedependent"` test is an extension of the `"Independent"` test that allows $\mathbf{X}_t$ and $\mathbf{Y}_t$ to be linearly dependent. Both tests quantify the asymptotic distribution of the autocovariances (and thus their differences) under the null hypothesis through Bartlett's Theorem. 
+@lund2009testing first proposed the `"Independent"` test. The `"Dependent"` test is an extension of the `"Independent"` test that allows $\mathbf{X}_t$ and $\mathbf{Y}_t$ to be linearly dependent. Both tests quantify the asymptotic distribution of the autocovariances (and thus their differences) under the null hypothesis through Bartlett's Theorem. 
 
 <hr>
 **Theorem:**(Multivariate Bartlett's Theorem) Let $\mathbf{Z}_t$ be a $m$-dimensional stationary processes with representation
@@ -51,7 +51,7 @@ where $\mathbf{E}_t$ has finite fourth moment and ${\displaystyle \sum_{k = -\in
 \begin{equation*}
 \sqrt{n} (\hat{\mathbf{\Lambda}} - \mathbf{\Lambda}) \xrightarrow{d} MVN \left( \mathbf{0}, \mathbf{W} \right)
 \end{equation*}
-as $n \rightarrow \infty$ where $\mathbf{\Lambda} = [\text{vec}(\Gamma_{\mathbf{Z}}(0))' \cdots \text{vec}(\Gamma_{\mathbf{Z}}(L))']'$. If $\mathbf{Z}_t$ is Gaussian, we can compute the entries of $\mathbf{W}$ using
+as $n \rightarrow \infty$ where $\mathbf{\Lambda} = [\text{vec}(\Gamma_{\mathbf{Z}}(0))' \cdots \text{vec}(\Gamma_{\mathbf{Z}}(L))']'$. and $\hat{\mathbf{\Lambda}}$ is the typical biased autocovariance estimator. If $\mathbf{Z}_t$ is Gaussian, we can compute the entries of $\mathbf{W}$ using
 \begin{align*}
 & \lim_{n \rightarrow \infty} n \text{Cov}(\hat{\gamma}_{ab}(p), \hat{\gamma}_{cd}(q)) = \sum_{r = - \infty}^\infty  \gamma_{ac}(r)\gamma_{bd}(r - p + q) +  \gamma_{ad}(r + q) \gamma_{bc}(r - p)
 \end{align*}
@@ -65,7 +65,9 @@ So in summary, to perform the `"Independent"` or `"Dependent"` tests, one must a
 * for the `"Independent"` test, $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ must be **independent**.
 * for the `"Dependent"` test, $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ can be **linearly dependent** or  **independent** without penalty.
 
-In addition, the `"Independent"` or `"Dependent"` tests compute weighted variants. The weighted variants place emphasis on lower lag autocovariances by applying the weights $1, \frac{L}{L + 1}, \frac{L - 1}{L + 1}, \dots, \frac{1}{L + 1}$ to the autocovariance functions at lags $0, 1, 2, \dots L$, respectively. In short memory situations, this may enhance hypothesis test accuracy. Further, this weighting diminshes inaccuracy in estimating higher lag autocovariances, so it may be beneficial when testing with a large $L$. See @FisherGallagher:2012 for more discussion on this idea.
+That is, even if the series are independent, the `"Dependent"` test can still be used without any discernible loss in test accuracy. Thus, if choosing between the two, the `"Dependent"` test is always the safer option.
+
+In addition, the `"Independent"` or `"Dependent"` tests compute weighted variants. The weighted variants place emphasis on lower lag autocovariances by applying the weights $1, \frac{L}{L + 1}, \frac{L - 1}{L + 1}, \dots, \frac{1}{L + 1}$ to the autocovariance functions at lags $0, 1, 2, \dots, L$, respectively. In short memory situations, this may enhance hypothesis test accuracy. Further, this weighting diminishes the effect of higher lag autocovariances, which are known to be poorly estimated. Hence it may be beneficial to use the weighted tests when testing with a large $L$. See @FisherGallagher:2012 for more discussion on this idea.
 
 ## bootDependent & bootBartlett tests
 
@@ -84,7 +86,7 @@ See @jin2019computational and `autocovarianceTest()` function documentation for 
 
 ## An example
 
-Let us look at monthly high temperatures in New York and Cleveland from 1960 to 2019. Intuitively, we expect the autocovariance functions of these series to differ due to the bodies of water that surround them (Lake Erie and the Atlantic) having differing effects on their respective climates. We will test up to lag $L = 5$.
+Let us look at monthly high temperatures in New York and Cleveland from 1960 to 2019. Intuitively, we expect the autocovariance functions of these series to differ due to the bodies of water that surround them (Lake Erie and the Atlantic Ocean) having differing effects on their respective climates. We will test up to lag $L = 5$.
 
 ```{r, fig.width = 7.1, fig.height = 4}
 # View data
@@ -99,7 +101,7 @@ ggplot() +
   theme_bw()
 ```
 
-As can be easily seen, the series are certainly not stationary nor mean zero. They exhibit clear seasonality. To transform to stationarity, we will standardize by monthly means and standard deviations
+As can be easily seen, the series are certainly not stationary nor mean zero. They exhibit clear seasonality. To transform to stationarity, we will standardize by monthly means and standard deviations.
 
 ```{r, warning = FALSE, message = FALSE, fig.width = 7.1, fig.height = 4}
 # Compute monthly means and standard deviations
@@ -138,10 +140,10 @@ CLE <- matrix(CLE)
 set.seed(1234)
 autocovarianceTest(X = NYC, Y = CLE, L = 5, 
                    test = c("Independent", "Dependent", "bootDependent", "bootBartlett"), 
-                   B = 500, prewhiten = TRUE, plot = TRUE)
+                   B = 500, b = NULL, prewhiten = TRUE, plot = TRUE)
 ```
 
-Interestingly, when violating the independence assumption, the `"Independent"` tests fail to reject the null hypothesis, giving a different outcome than the other unweighted tests. In this case, emphasizing earlier lags also results in a failure to reject the null hypothesis. Given the Gaussian nature of the series, I would trust the `"Dedependent"` unweighted test the most, whose conclusion is further bolstered by the 
+Interestingly, when violating the independence assumption, the `"Independent"` tests fail to reject the null hypothesis, giving a different outcome than the other unweighted tests. In this case, emphasizing earlier lags also results in a failure to reject the null hypothesis. Given the Gaussian nature of the series, the `"Dependent"` unweighted test seems most trustworthy, and its conclusion is further bolstered by the 
 `"bootDependent"` and `"bootBartlett"` tests.
 
 ## References

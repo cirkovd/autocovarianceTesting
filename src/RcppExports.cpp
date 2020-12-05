@@ -48,8 +48,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // calculateBootTestStat
-Rcpp::List calculateBootTestStat(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, bool const& prewhiten);
-RcppExport SEXP _autocovarianceTesting_calculateBootTestStat(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP prewhitenSEXP) {
+Rcpp::List calculateBootTestStat(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten);
+RcppExport SEXP _autocovarianceTesting_calculateBootTestStat(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -57,8 +57,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const double& >::type L(LSEXP);
     Rcpp::traits::input_parameter< int const& >::type B(BSEXP);
+    Rcpp::traits::input_parameter< int const& >::type b(bSEXP);
     Rcpp::traits::input_parameter< bool const& >::type prewhiten(prewhitenSEXP);
-    rcpp_result_gen = Rcpp::wrap(calculateBootTestStat(X, Y, L, B, prewhiten));
+    rcpp_result_gen = Rcpp::wrap(calculateBootTestStat(X, Y, L, B, b, prewhiten));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -67,7 +68,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_autocovarianceTesting_calculateAutocovariance", (DL_FUNC) &_autocovarianceTesting_calculateAutocovariance, 3},
     {"_autocovarianceTesting_calculateCovariance", (DL_FUNC) &_autocovarianceTesting_calculateCovariance, 3},
     {"_autocovarianceTesting_calculateTestStat", (DL_FUNC) &_autocovarianceTesting_calculateTestStat, 5},
-    {"_autocovarianceTesting_calculateBootTestStat", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStat, 5},
+    {"_autocovarianceTesting_calculateBootTestStat", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStat, 6},
     {NULL, NULL, 0}
 };
 

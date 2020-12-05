@@ -10,6 +10,7 @@ autocovarianceTest(
   L = NULL,
   test = "Dependent",
   B = 500,
+  b = NULL,
   prewhiten = TRUE,
   plot = TRUE
 )
@@ -24,6 +25,8 @@ autocovarianceTest(
 \item{test}{the tests to be performed. Must be a vector containing a subset of \code{"Independent"}, \code{"Dependent"}, \code{"bootDependent"} and \code{"bootBartlett"}.}
 
 \item{B}{for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.}
+
+\item{b}{for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{b = max(floor(0.5 * n^(1/3)), 2)}.}
 
 \item{prewhiten}{for the \code{"bootDependent"} and \code{"bootBartlett"} tests, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.}
 
@@ -60,7 +63,7 @@ A named list containing many relevant statistics pertaining to each test
 }
 }
 \description{
-Perform a hypothesis test for equality of autocovariance functions for two time series with one or more of the following methods: (Weighted) Independent, (Weighted) Dependent, Bootstrap-Jin and Bootstrap-Bartlett. The former two tests assess equality up to a fixed lag, while the latter two select the "optimal lag" for testing the hypothesis using an AIC-like penalty at each lag. The tests can handle multivariate time series, but the computations become considerably more intensive with an increase in dimension.
+Perform a hypothesis test for equality of autocovariance functions for two time series with one or more of the following methods: (Weighted) Independent, (Weighted) Dependent, Bootstrapped Dependent and Bootstrapped Bartlett. The former two tests assess equality up to a fixed lag, while the latter two select the "optimal lag" for testing the hypothesis using an AIC-like penalty at each lag. The tests can handle multivariate time series, but the computations become considerably more intense with an increase in dimension.
 }
 \details{
 Consider two \eqn{m}-dimensional, stationary time series with mean zero. \code{autocovarianceTest} tests for equality of autocovariance functions of the respective series. The \code{"Independent"} test is given by Lund et. al (2009). Their test assumes
@@ -73,11 +76,13 @@ When running either the \code{"Independent"} or \code{"Dependent"} test, \code{a
 parameters, \code{ind_alpha} and \code{ind_beta}, and the associated p-value \code{ind_weight_pval}. The same statistics for \code{"Dependent"} are given by \code{dep_weight_stat}, \code{dep_alpha}, \code{dep_beta} and \code{dep_weight_pval}. All previously mentioned tests
 require Gaussianity of the series. The following two tests can be applied to series with non-normal distributions.
 
-The \code{"bootDependent"} (see Jin et. al (2019)) and \code{"bootBartlett"} tests compute a similar test statistic to the \code{"Dependent"} tests but through a block of blocks bootstrap. The original test statistic is monotone increasing with lag, so the tests apply
+The \code{"bootDependent"} (see Jin et. al (2019)) and \code{"bootBartlett"} tests compute a similar test statistic to the \code{"Dependent"} test but through a block of blocks bootstrap. The original test statistic is monotone increasing with lag, so the tests apply
 an AIC-like penalty to choose the "best" lag (up to \code{L}) to perform the hypothesis test with. This provides some desirable properties under the alternative hypothesis. \code{prewhiten = TRUE} fits a large VAR(p) process to \code{X} and \code{Y} and then applies
-the tests to the residuals of said process. It is highly recommended to as prewhitening improves empirical rejection rates. \code{B} controls the number of bootstrap resamples used in the \code{"bootDependent"} and \code{"bootBartlett"} tests. \code{"bootBartlett"} replaces the Jin
+the tests to the residuals of said process. It is highly recommended as prewhitening improves empirical rejection rates. \code{B} and \code{b} control the number of bootstrap resamples and block length used in the \code{"bootDependent"} and \code{"bootBartlett"} tests. \code{"bootBartlett"} replaces the Jin
 et. al (2019) covariance estimate with the \code{"Dependent"} estimate averaged over each bootstrap resample. For the \code{"bootDependent"} test, \code{autocovarianceTest} outputs the test statistic, \code{jin_stat}, the optimally selected lag, \code{jin_L}, the
 estimated covariance under the null, \code{jin_cov}, and psuedo p-value \code{jin_pval}. The same statistics for \code{"bootBartlett"} are given by \code{bart_stat}, \code{bart_L}, \code{bart_cov} and \code{bart_pval}.
+
+For more on key assumptions behind each of the tests and a thorough example, please see the vignette.
 }
 \examples{
 ## Simulate two marignal AR(1) processes that are correlated at lag zero and run tests

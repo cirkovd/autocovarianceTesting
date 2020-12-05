@@ -7,10 +7,10 @@
 \format{
 An object of class \code{"data.frame"} with 1440 rows and 4 columns.
 \describe{
-\item{City}{city, CLE or NYC}
-\item{Year}{year}
-\item{Month }{month}
-\item{TMAX}{high temperature (degrees Farenheit)}
+\item{City}{the city, CLE or NYC.}
+\item{Year}{the year of the high temperature.}
+\item{Month }{the month of the high temperature.}
+\item{TMAX}{the high temperature (degrees Farenheit).}
 }
 }
 \source{
@@ -20,6 +20,6 @@ https://www.ncdc.noaa.gov/cdo-web/datatools/findstation
 data(cityTemps)
 }
 \description{
-Monthly High Temperatures in New York and Cleveland from 1960 to 2019
+Monthly high temperatures in New York City and Cleveland from 1960 to 2019. The stations that record the data are located at Cleveland Hopkins International Airport and John F. Kennedy International Airport.
 }
 \keyword{datasets}

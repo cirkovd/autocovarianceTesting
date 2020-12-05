@@ -264,7 +264,7 @@ arma::mat prewhitenData(const arma::mat & Z){
 
 // Function that computes test statistics for order lag tests 
 // [[Rcpp::export]]
-Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, bool const & prewhiten) {
+Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten) {
     // Get some details from the inputs
     int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
@@ -281,7 +281,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     }
     
     // Set some parameters for block of blocks bootstrap
-    int b = floor(std::max(0.5 * cbrt(n), 2.0));
+    // int b = floor(std::max(0.5 * cbrt(n), 2.0));
     // no blocks
     int K = ceil(n/b);
     int L_max = L;
@@ -383,7 +383,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     arma::cube bart_mats(k * k * (L_max + 1) - dupl, k * k * (L_max + 1) - dupl, B);
     arma::mat cov(k * k * (L_max + 1) - dupl, k * k * (L_max + 1) - dupl);
     
-    // Compute bartlett covariance for each bootstrap resamples
+    // Compute bartlett covariance for each bootstrap resample
     for (int l = 0; l < B; l++){
         arma::mat cov = (calculateCovariance(
             X1.rows(conv_to<uvec>::from(boot_ind.col(l))), 

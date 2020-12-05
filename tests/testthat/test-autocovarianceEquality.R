@@ -413,4 +413,67 @@ test_that("Functions work", {
   out <- autocovarianceTest(matrix(gasRate), matrix(gasCO2), L = 5, B = 2000, test = c("bootDependent", "bootBartlett"))
   
   
+  set.seed(1234)
+  # Miscellaneous compatibility checks
+  Xgood <- matrix(rnorm(100 * 2), nrow = 100, ncol = 2)
+  Ygood <- matrix(rnorm(100 * 2), nrow = 100, ncol = 2)
+  Lgood <- 5
+  Bgood <- 10
+  bgood <- 3
+  testgood <- c("Independent", "Dependent", "bootDependent", "bootBartlett")
+  prewhitengood <- TRUE
+  plotgood <-TRUE
+  
+  # b larger than n
+  expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = Lgood, test = testgood, 
+                                  B = Bgood, b = 1000, prewhiten = prewhitengood, 
+                                  plot = plotgood))
+  
+  # b is not a integer
+  expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = Lgood, test = testgood, 
+                                  B = Bgood, b = 2.5, prewhiten = prewhitengood, 
+                                  plot = plotgood))
+  
+  # L larger than n
+  expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = 1000, test = testgood, 
+                                  B = Bgood, b = bgood, prewhiten = prewhitengood, 
+                                  plot = plotgood))
+  
+  # L is not a integer
+  expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = 1.5, test = testgood, 
+                                  B = Bgood, b = bgood, prewhiten = prewhitengood, 
+                                  plot = plotgood))
+  
+  # B is not a integer
+  expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = Lgood, test = testgood, 
+                                  B = 1.5, b = bgood, prewhiten = prewhitengood, 
+                                  plot = plotgood))
+  
+  # test contains something strange
+  expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = Lgood, test = c("banana", "Dependent"), 
+                                  B = Bgood, b = bgood, prewhiten = prewhitengood, 
+                                  plot = plotgood))
+  
+  # prewhiten contains something strange
+  expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = Lgood, test = testgood, 
+                                  B = Bgood, b = bgood, prewhiten = "banana", 
+                                  plot = plotgood))
+  
+  # X has missing values 
+  expect_error(autocovarianceTest(X = matrix(NA, nrow = 100, ncol = 2), Y = Ygood, L = Lgood, test = testgood, 
+                                  B = Bgood, b = bgood, prewhiten = prewhitengood, 
+                                  plot = plotgood))
+  
+  # X and Y are of different dimension
+  expect_error(autocovarianceTest(X = matrix(1, nrow = 100, ncol = 3), Y = Ygood, L = Lgood, test = testgood, 
+                                  B = Bgood, b = bgood, prewhiten = prewhitengood, 
+                                  plot = plotgood))
+  
+  # X and Y are of different length
+  expect_error(autocovarianceTest(X = matrix(1, nrow = 101, ncol = 2), Y = Ygood, L = Lgood, test = testgood, 
+                                  B = Bgood, b = bgood, prewhiten = prewhitengood, 
+                                  plot = plotgood))
+  
+  
+  
 })
