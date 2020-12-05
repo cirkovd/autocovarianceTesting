@@ -28,8 +28,8 @@ details.
 
 ## Example
 
-For monthly change in US consumption and income from 1970 to 2016, test
-if the autocovariance structure of the series differ up to lag 12.
+For quarterly change in US consumption and income from 1970 to 2016,
+test if the autocovariance structure of the series differ up to lag 12.
 
 ``` r
 library(autocovarianceTesting)
