@@ -39,7 +39,7 @@ compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
   }
   
   # AR(p) order for prewhitening
-  p <- ifelse(prewhiten == TRUE, ceiling(min(10 * log(n), 0.8 * sqrt(n))), 0)
+  p <- ifelse(prewhiten == TRUE & ("bootDependent" %in% test | "bootBartlett" %in% test), ceiling(min(10 * log(n), 0.8 * sqrt(n))), 0)
   
   # Set L if not supplied
   if ( is.null(L) ){
