@@ -23,6 +23,11 @@ compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
     stop(paste("X and Y must be matrices with the same number of rows"))
   }
   
+  # X and Y have the same number of rows
+  if ( nrow(X) < 3 ){
+    stop(paste("X and Y must be must be of length greater than 2"))
+  }
+  
   # X and Y have the same number of columns
   if ( ncol(X) != ncol(Y) ){
     stop(paste("X and Y must be matrices with the same number of columns"))
@@ -33,9 +38,12 @@ compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
     stop(paste("X and Y can not have missing values"))
   }
   
+  # AR(p) order for prewhitening
+  p <- ifelse(prewhiten == TRUE, ceiling(min(10 * log(n), 0.8 * sqrt(n))), 0)
+  
   # Set L if not supplied
   if ( is.null(L) ){
-    L <- ceiling((log2(n))^0.9999)
+    L <- ceiling((log2(n - p))^0.9999)
   }
   
   # L must be numeric
@@ -44,13 +52,13 @@ compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
   }
   
   # L must be less than n
-  if ( L >= n ){
-    stop(paste("L must be strictly less than n the length of the series"))
+  if ( L >= (n - p) ){
+    stop(paste("L must be strictly less than n the length of the series (minus AR order if prewhitening)"))
   }
   
   # Set b if not supplied
   if ( is.null(b) ){
-    b <- max(floor(0.5 * n^(1/3)), 2)
+    b <- max(floor(0.5 * (n - p)^(1/3)), 2)
   }
   
   # b must be numeric
@@ -59,13 +67,13 @@ compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
   }
   
   # b must be less than n
-  if ( b >= n ){
-    stop(paste("b must be strictly less than n the length of the series"))
+  if ( b >= (n - p) ){
+    stop(paste("b must be strictly less than n the length of the series (minus AR order if prewhitening)"))
   }
   
   # Dimension of time series must be smaller than n
-  if ( ncol(X) >= n ){
-    stop(paste("The dimension of the series must be smaller than its length"))
+  if ( ncol(X) >= (n - p)){
+    stop(paste("The dimension of the series must be smaller than its length (minus AR order if prewhitening)"))
   }
   
   # test must be one of c(Independent, Dependent, bootDependent, bootBartlett)
