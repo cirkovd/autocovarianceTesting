@@ -60,7 +60,7 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
   
   # L must be less than n
   if ( L >= (n - p - 1) ){
-    stop(paste("L must be strictly less than n the length of the series (minus AR order if prewhitening)"))
+    stop(paste("L must be strictly less than n the length of the series (minus AR order + 1 if prewhitening)"))
   }
   
   # Set b if not supplied
@@ -80,12 +80,12 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
   
   # b must be less than n
   if ( b >= (n - p - 1) ){
-    stop(paste("b must be strictly less than n the length of the series (minus AR order if prewhitening)"))
+    stop(paste("b must be strictly less than n the length of the series (minus AR order + 1 if prewhitening)"))
   }
   
   # Dimension of time series must be smaller than n
   if ( ncol(X) >= (n - p - 1)){
-    stop(paste("The dimension of the series must be smaller than its length (minus AR order if prewhitening)"))
+    stop(paste("The dimension of the series must be smaller than its length (minus AR order + 1 if prewhitening)"))
   }
   
   # test must be one of c(Independent, Dependent, bootDependent, bootBartlett)
@@ -119,8 +119,8 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
   }
   
   # trunc must be less than n
-  if ( trunc >= (n - p - 1) ){
-    stop(paste("trunc must be strictly less than n the length of the series (minus AR order if prewhitening)"))
+  if ( trunc >= (n - p - L - 1) ){
+    stop(paste("trunc must be strictly less than n - L (minus AR order + 1 if prewhitening)"))
   }
   
   # prewhiten must be boolean
