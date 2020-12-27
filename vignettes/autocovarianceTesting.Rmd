@@ -17,8 +17,6 @@ knitr::opts_chunk$set(
 
 ```{r setup, warning = FALSE, message = FALSE}
 library(autocovarianceTesting)
-library(tidyverse)
-library(lubridate)
 ```
 
 Let $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ be two $m$-dimensional zero mean stationary, and potentially dependent time series of the same length $n$ with $n > m \geq 1$. Define the autocovariance function of $\mathbf{X}_t$ at lag $k$ as
@@ -92,32 +90,52 @@ Let us look at monthly high temperatures in New York and Cleveland from 1960 to 
 # View data
 head(cityTemps)
 # Create a date variable for plotting
-cityTemps$Date <- ymd(paste(cityTemps$Year, "-", cityTemps$Month, "-", 1))
+cityTemps$Date <- lubridate::ymd(paste(cityTemps$Year, "-", cityTemps$Month, "-", 1))
+# Subset data
+NYCdata <- cityTemps[cityTemps$City == "NYC",]
+CLEdata <- cityTemps[cityTemps$City == "CLE",]
 
-# Plot
-ggplot() +
-  geom_line(aes(x = Date, y = TMAX, color = City), data = cityTemps) +
-  facet_grid(City ~ .) +
-  theme_bw()
+# Plotting
+par(mfrow = c(2, 1), oma = c(3, 3, 2, 2), mar = c(1, 1, 0, 0), mgp = c(1, 1, 0), xpd = NA)
+plot(x = NYCdata$Date, y = NYCdata$TMAX, type = "l", col = "blue", 
+     xlab = "", ylab = "", ylim = c(20, 90), xaxt = "n")
+plot(x = CLEdata$Date, y = CLEdata$TMAX, type = "l", col = "red", 
+     xlab = "", ylab = "", ylim = c(20, 90))
+# Extra labeling
+graphics::mtext('Date', side = 1, outer = TRUE, line = 2)
+graphics::mtext('Std Temp', side = 2, outer = TRUE, line = 2)
+par(mfrow = c(1, 1))
+graphics::legend("topright", legend = c("NYC", "CLE"), fill = c("blue","red"), cex = 0.5)
 ```
 
 As can be easily seen, the series are certainly not stationary nor mean zero. They exhibit clear seasonality. To transform to stationarity, we will standardize by monthly means and standard deviations.
 
 ```{r, warning = FALSE, message = FALSE, fig.width = 7.1, fig.height = 4}
 # Compute monthly means and standard deviations
-month_stats <- cityTemps %>%
-  group_by(City, Month) %>%
-  summarize(mean_temp = mean(TMAX), sd_temp = sd(TMAX))
+month_stats <- dplyr::summarize(
+    dplyr::group_by(cityTemps, City, Month), 
+    mean_temp = mean(TMAX), sd_temp = sd(TMAX))
 
 # Join the datasets and create a standardized temperature
-cityTemps2 <- left_join(cityTemps, month_stats, by = c("City", "Month")) %>%
-  mutate(std_temp = (TMAX - mean_temp)/sd_temp)
+cityTemps2 <- dplyr::mutate(
+  dplyr::left_join(cityTemps, month_stats, by = c("City", "Month")), 
+  std_temp = (TMAX - mean_temp)/sd_temp)
+# Subset data
+NYCdata2 <- cityTemps2[cityTemps2$City == "NYC",]
+CLEdata2 <- cityTemps2[cityTemps2$City == "CLE",]
 
-# Replot and check for stationarity
-ggplot() +
-  geom_line(aes(x = Date, y = std_temp, color = City), data = cityTemps2) +
-  facet_grid(City ~ .) +
-  theme_bw()
+# Plotting
+par(mfrow = c(2, 1), oma = c(3, 3, 2, 2), mar = c(1, 1, 0, 0), mgp = c(1, 1, 0), xpd = NA)
+plot(x = NYCdata2$Date, y = NYCdata2$std_temp, type = "l", col = "blue", 
+     xlab = "", ylab = "", ylim = c(-4, 3), xaxt = "n")
+plot(x = CLEdata2$Date, y = CLEdata2$std_temp, type = "l", col = "red", 
+     xlab = "", ylab = "", ylim = c(-4, 3))
+# Extra labeling
+graphics::mtext('Date', side = 1, outer = TRUE, line = 2)
+graphics::mtext('Temperature', side = 2, outer = TRUE, line = 2)
+par(mfrow = c(1, 1))
+graphics::legend("topright", legend = c("NYC", "CLE"), fill = c("blue","red"), cex = 0.5)
+
 ```
 
 Now the series are reasonably stationary! Let's check if they exhibit any linear dependence.

@@ -8,7 +8,7 @@ autocovarianceTest(
   X,
   Y,
   L = NULL,
-  test = "Dependent",
+  test = "bootDependent",
   trunc = NULL,
   B = 500,
   b = NULL,
