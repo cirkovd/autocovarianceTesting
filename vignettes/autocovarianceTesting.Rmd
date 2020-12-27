@@ -150,15 +150,16 @@ ccf(NYC, CLE)
 
 The plot of the cross-correlation function clearly suggests that the two series exhibit linear dependence at multiple lags. Thus when testing, we should not use the `"Independent"` test. However we will show it here just as an example of what can go wrong when violating an assumption.
 
-```{r, results = 'asis', fig.width = 7.1, fig.height = 4}
+```{r, fig.width = 7.1, fig.height = 4}
 # Make sure the series are column matrices as in the documentation
 NYC <- matrix(NYC)
 CLE <- matrix(CLE)
 
 set.seed(1234)
-autocovarianceTest(X = NYC, Y = CLE, L = 5, 
+output <- autocovarianceTest(X = NYC, Y = CLE, L = 5, 
                    test = c("Independent", "Dependent", "bootDependent", "bootBartlett"), 
                    B = 500, b = NULL, prewhiten = TRUE, plot = TRUE, trunc = NULL)
+output
 ```
 
 Interestingly, when violating the independence assumption, the `"Independent"` tests fail to reject the null hypothesis, giving a different outcome than the other unweighted tests. In this case, emphasizing earlier lags also results in a failure to reject the null hypothesis. Given the Gaussian nature of the series, the `"Dependent"` unweighted test seems most trustworthy, and its conclusion is further bolstered by the 

@@ -7,13 +7,18 @@ NULL
 
 # Function to run compatibility checks
 compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
-  # Get ts length
-  n <- nrow(X)
   
   # X and Y must be matrices
   if ( (!(is.matrix(X))) | (!(is.matrix(Y))) ){
     stop(paste("X and Y must be matrices"))
   }
+  
+  # If X and Y are vectors, put them in the correct format
+  X <- t(t(X))
+  Y <- t(t(Y))
+  
+  # Get ts length
+  n <- nrow(X)
   
   # X and Y have the same number of rows
   if ( nrow(X) != nrow(Y) ){
@@ -129,6 +134,98 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
   }
   
   return(list(L, b, trunc))
+}
+
+
+#' Summarizing autocovarianceTest function output
+#'
+#' @param x a \code{"acvfTest"} object given by \code{"autocovarianceTest()"}.
+#' @param ... additional arguments to \link[base]{print}.
+#'
+#' @export
+#'
+#' @examples
+#' #' ## Simulate two marignal AR(1) processes that are correlated at lag zero and run tests
+#' set.seed(12345)
+#' 
+#' # Simulate correlated errors
+#' Sigma <- matrix(c(1, 0.8, 0.8, 1), 2, 2) # covariance of errors
+#' n <- 1000 # sample size
+#' Errors <- mvtnorm::rmvnorm(n, mean = c(0, 0), sigma = Sigma)
+#' 
+#' # Simultate correlated AR(1) processes under the null hypothesis
+#' X <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 1])) 
+#' Y <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 2]))
+#' 
+#' # Run tests for equality of autocovariance functions up to lag 5
+#' output <- autocovarianceTest(X, Y, L = 5, 
+#' test = c("Independent","Dependent","bootDependent","bootBartlett"))
+#' # All tests fail to reject the null
+#' print(output)
+print.acvfTest <- function(x, ...){
+  # Create test vector
+  test <- c()
+  listnames <- names(x)
+  test <- if("ind_stat" %in% listnames){ c(test, "Independent") }else{ test }
+  test <- if("dep_stat" %in% listnames){ c(test, "Dependent") }else{ test }
+  test <- if("jin_stat" %in% listnames){ c(test, "bootDependent") }else{ test }
+  test <- if("bart_stat" %in% listnames){ c(test, "bootBartlett") }else{ test }
+  
+  if( "Independent" %in% test | "Dependent" %in% test ){
+    # Initialize Fixed Lag Table
+    out_table <- data.frame(0, 1, 2, 3)
+    out_table <- out_table[-1, ]
+    
+    # Initialize Weighted Table
+    out_table_weight <- data.frame(0, 1, 2, 3, 4)
+    out_table_weight <- out_table_weight[-1, ]
+  }
+  
+  if ("Independent" %in% test){
+    # Add independent tests
+    out_table <- rbind(out_table, c("Independent", round(x$ind_stat, 3), x$ind_df, round(x$ind_pval, 3)))
+    colnames(out_table) <- c("Test", "Chi-Sq", "df", "p-value")
+    out_table_weight <- rbind(out_table_weight, c("Weighted Independent", round(x$ind_weight_stat, 3), round(x$ind_alpha, 3), round(x$ind_beta, 3), round(x$ind_weight_pval, 3)))
+    colnames(out_table_weight) <- c("Test", "Gamma", "alpha", "beta", "p-value")
+  }
+  
+  if ("Dependent" %in% test){
+    # Add dependent tests
+    out_table <- rbind(out_table, c("Dependent", round(x$dep_stat, 3), x$dep_df, round(x$dep_pval, 3)))
+    colnames(out_table) <- c("Test", "Chi-Sq", "df", "p-value")
+    out_table_weight <- rbind(out_table_weight, c("Weighted Dependent", round(x$dep_weight_stat, 3), round(x$dep_alpha, 3), round(x$dep_beta, 3), round(x$dep_weight_pval, 3)))
+    colnames(out_table_weight) <- c("Test", "Gamma", "alpha", "beta", "p-value")
+  }
+  
+  # Initialize bootstrapped tables
+  if ("bootDependent" %in% test | "bootBartlett" %in% test){
+    out_table_boot <- data.frame(0, 1, 2, 3)
+    out_table_boot <- out_table_boot[-1, ]
+  }
+  
+  if ("bootDependent" %in% test){
+    # Add jin tests
+    out_table_boot <- rbind(out_table_boot, c("Bootstrap-Jin", round(x$jin_stat, 3), round(x$jin_L, 3), round(x$jin_pval, 3)))
+    colnames(out_table_boot) <- c("Test", "Statitic", "L hat", "p-value")
+  }
+  
+  if ("bootBartlett" %in% test){
+    # Add boot Bartlett tests
+    out_table_boot <- rbind(out_table_boot, c("Bootstrap-Bartlett", round(x$bart_stat, 3), round(x$bart_L, 3), round(x$bart_pval, 3)))
+    colnames(out_table_boot) <- c("Test", "Statitic", "L hat", "p-value")
+  }
+  
+  if ("Independent" %in% test | "Dependent" %in% test ){
+    cat("\n Fixed Lag Tests:\n \n")
+    print(out_table, row.names = FALSE, ...)
+    cat("\n Weighted Fixed Lag Tests:\n \n")
+    print(out_table_weight, row.names = FALSE, ...)
+  }
+  if ("bootDependent" %in% test | "bootBartlett" %in% test ){
+    cat("\n Automatic Lag Selection Tests:\n \n")
+    print(out_table_boot, row.names = FALSE, ...)
+  }
+  
 }
 
 # Plot helper function
@@ -284,8 +381,10 @@ acvfPlot <- function(X, Y, L){
 #' Y <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 2]))
 #' 
 #' # Run tests for equality of autocovariance functions up to lag 5
-#' autocovarianceTest(X, Y, L = 5, test = c("Independent","Dependent","bootDependent","bootBartlett"))
+#' output <- autocovarianceTest(X, Y, L = 5, 
+#' test = c("Independent","Dependent","bootDependent","bootBartlett"))
 #' # All tests fail to reject the null
+#' output
 #' 
 #' ## In males and females, do monthly lung deaths in the UK from 1974-1979
 #' ## have the same autocovariance structure?
@@ -327,17 +426,14 @@ acvfPlot <- function(X, Y, L){
 #' ccf(female_stnd, male_stnd) # Clear lag zero correlation
 #' 
 #' # The series are likely gaussian and dependent, hence it makes most sense to use "Dependent" test
-#' autocovarianceTest(matrix(male_stnd), matrix(female_stnd), 5, test = "Dependent")
+#' output2 <- autocovarianceTest(matrix(male_stnd), matrix(female_stnd), 5, test = "Dependent")
+#' output2
 #' 
 #' # Both the weighted and unweighted tests fail to reject the null hypothesis
 #' # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
 #' acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 #' 
 autocovarianceTest <- function(X, Y, L = NULL, test = "bootDependent", trunc = NULL, B = 500, b = NULL, prewhiten = TRUE, plot = TRUE){
-  
-  # If X and Y are vectors, put them in the correct format
-  X <- t(t(X))
-  Y <- t(t(Y))
   
   # Compatibility Tests and reassign L if need be
   Lb <- compatibilityChecks(X, Y, L, test, trunc, B, b, prewhiten, plot)
@@ -392,65 +488,13 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "bootDependent", trunc = N
     }
   }
   
-  
-  # Create a nice table to output
-  
-  if( "Independent" %in% test | "Dependent" %in% test ){
-    # Initialize Fixed Lag Table
-    out_table <- data.frame(0, 1, 2, 3)
-    out_table <- out_table[-1, ]
-    
-    # Initialize Weighted Table
-    out_table_weight <- data.frame(0, 1, 2, 3, 4)
-    out_table_weight <- out_table_weight[-1, ]
-  }
-  
-  if ("Independent" %in% test){
-    # Add independent tests
-    out_table <- rbind(out_table, c("Independent", round(out$ind_stat, 3), out$ind_df, round(out$ind_pval, 3)))
-    colnames(out_table) <- c("Test", "Chi-Sq", "df", "p-value")
-    out_table_weight <- rbind(out_table_weight, c("Weighted Independent", round(out$ind_weight_stat, 3), round(out$ind_alpha, 3), round(out$ind_beta, 3), round(out$ind_weight_pval, 3)))
-    colnames(out_table_weight) <- c("Test", "Gamma", "alpha", "beta", "p-value")
-  }
-  
-  if ("Dependent" %in% test){
-    # Add dependent tests
-    out_table <- rbind(out_table, c("Dependent", round(out$dep_stat, 3), out$dep_df, round(out$dep_pval, 3)))
-    colnames(out_table) <- c("Test", "Chi-Sq", "df", "p-value")
-    out_table_weight <- rbind(out_table_weight, c("Weighted Dependent", round(out$dep_weight_stat, 3), round(out$dep_alpha, 3), round(out$dep_beta, 3), round(out$dep_weight_pval, 3)))
-    colnames(out_table_weight) <- c("Test", "Gamma", "alpha", "beta", "p-value")
-  }
-  
-  # Initialize bootstrapped tables
-  if ("bootDependent" %in% test | "bootBartlett" %in% test){
-    out_table_boot <- data.frame(0, 1, 2, 3)
-    out_table_boot <- out_table_boot[-1, ]
-  }
-  
-  if ("bootDependent" %in% test){
-    # Add jin tests
-    out_table_boot <- rbind(out_table_boot, c("Bootstrap-Jin", round(out$jin_stat, 3), round(out$jin_L, 3), round(out$jin_pval, 3)))
-    colnames(out_table_boot) <- c("Test", "Statitic", "L hat", "p-value")
-  }
-  
-  if ("bootBartlett" %in% test){
-    # Add boot Bartlett tests
-    out_table_boot <- rbind(out_table_boot, c("Bootstrap-Bartlett", round(out$bart_stat, 3), round(out$bart_L, 3), round(out$bart_pval, 3)))
-    colnames(out_table_boot) <- c("Test", "Statitic", "L hat", "p-value")
-  }
-  
   # Plot 
   if( plot == TRUE ){
     acvfPlot(X, Y, L)
   }
   
-  # Set up knitr output
-  table1 <- if ("Independent" %in% test | "Dependent" %in% test){ knitr::kable(out_table, row.names = FALSE, caption = "Fixed Lag Tests")} else {NULL}
-  table2 <- if ("Independent" %in% test | "Dependent" %in% test){ knitr::kable(out_table_weight, row.names = FALSE, caption = "Weighted Fixed Lag Tests")} else {NULL}
-  table3 <- if ("bootDependent" %in% test | "bootBartlett" %in% test){ knitr::kable(out_table_boot, row.names = FALSE, caption = "Automatic Lag Selection Tests")} else {NULL}
-  
-  print(knitr::kables(list(table1, table2, table3)))
-  
+  class(out) <- "acvfTest"
+
   return(invisible(out))
   
 }
@@ -474,3 +518,24 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "bootDependent", trunc = N
 #' @source https://www.ncdc.noaa.gov/cdo-web/datatools/findstation
 #' 
 "cityTemps"
+
+#' Concentration of Daily Average Air Pollutants in two London Locations from 2015 to 2018
+#' 
+#' @description Concentration of daily average air pollutants in the London N. Kensington and London Marylebone Road stations from 2015 to 2018. Data is taken from the Air Information Resource (UK-AIR) of the Department for Environment, Food and Rural Affairs in the United Kingdom (see https://uk-air.defra.gov.uk/).
+#'
+#' @docType data
+#'
+#' @usage data(ukAir)
+#'
+#' @format An object of class \code{"data.frame"} with 5844 rows and 5 columns.
+#' \describe{
+#'   \item{Site}{the location of measurement, London N. Kensington or London Marylebone Road.}
+#'   \item{Parameter}{the pollutant, Nitric Oxide or Nitrogen Dioxide}
+#'   \item{Date}{the date of the measurement}
+#'   \item{Value}{average daily concentration of pollutant (in ug/m3)}
+#'   \item{logValue}{log of average daily concentration of pollutant (in log(ug/m3))}
+#' }
+#'
+#' @source https://uk-air.defra.gov.uk/
+#' 
+"ukAir"

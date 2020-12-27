@@ -13,6 +13,15 @@ The package 'autocovarianceTesting' implements multiple hypothesis tests for tes
 
 'autocovarianceTesting' includes one function: `autocovarianceTest`. `autocovarianceTest` allows the the user to supply two time series and select from any combination of the previously mentioned methods to test for equality of autocovariance functions. Choices of methods are made through the `test` argument. See function documentation for more details.
 
+## Installation
+
+The package is currently available on github. To install, use the following:
+
+```{r, eval = FALSE}
+# Installation of autocovarianceTesting
+devtools::install_github("cirkovd/autocovarianceTesting", build_vignettes = TRUE)
+```
+
 ## Example
 
 For quarterly change in US consumption and income from 1970 to 2016, test if the autocovariance structure of the series differ up to lag 12.
@@ -39,16 +48,17 @@ ccf(c(usconsumption), c(usincome), main = "Cross-Correlation Function")
 
 Since the series exhibit clear correlation, only use the dependent tests provided in `autocovarianceTest`.
 
-```{r, results = 'asis'}
+```{r}
 # Make the series mean zero
 usconsumption <- usconsumption - mean(usconsumption)
 usincome <- usincome - mean(usincome)
 
 set.seed(4321)
 # Run test for up to lag 12
-autocovarianceTest(usconsumption, usincome, L = 12, 
+output <- autocovarianceTest(usconsumption, usincome, L = 12, 
                    test = c("Dependent", "bootBartlett", "bootDependent"),
                    B = 1000, prewhiten = TRUE, plot = TRUE)
+output
 ```
 
 All tests reject the null hypothesis of equality of autocovariances up to lag 12.

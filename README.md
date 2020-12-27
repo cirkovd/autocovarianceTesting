@@ -26,6 +26,16 @@ for equality of autocovariance functions. Choices of methods are made
 through the `test` argument. See function documentation for more
 details.
 
+## Installation
+
+The package is currently available on github. To install, use the
+following:
+
+``` r
+# Installation of autocovarianceTesting
+devtools::install_github("cirkovd/autocovarianceTesting", build_vignettes = TRUE)
+```
+
 ## Example
 
 For quarterly change in US consumption and income from 1970 to 2016,
@@ -57,20 +67,20 @@ usincome <- matrix(uschange[ ,2])
 plot(t, usconsumption, type = "l", xlab = "Time", ylab = "Consumption")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 ``` r
 plot(t, usincome, type = "l", xlab = "Time", ylab = "Income")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
 
 ``` r
 # The series exhibit clear dependence
 ccf(c(usconsumption), c(usincome), main = "Cross-Correlation Function")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-3.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-2-3.png)<!-- -->
 
 Since the series exhibit clear correlation, only use the dependent tests
 provided in `autocovarianceTest`.
@@ -82,55 +92,33 @@ usincome <- usincome - mean(usincome)
 
 set.seed(4321)
 # Run test for up to lag 12
-autocovarianceTest(usconsumption, usincome, L = 12, 
+output <- autocovarianceTest(usconsumption, usincome, L = 12, 
                    test = c("Dependent", "bootBartlett", "bootDependent"),
                    B = 1000, prewhiten = TRUE, plot = TRUE)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-<table class="kable_wrapper">
+``` r
+output
+```
 
-<tbody>
-
-<tr>
-
-<td>
-
-| Test      | Chi-Sq | df | p-value |
-| :-------- | :----- | :- | :------ |
-| Dependent | 59.006 | 13 | 0       |
-
-Fixed Lag Tests
-
-</td>
-
-<td>
-
-| Test               | Gamma  | alpha | beta  | p-value |
-| :----------------- | :----- | :---- | :---- | :------ |
-| Weighted Dependent | 50.911 | 3.517 | 1.392 | 0       |
-
-Weighted Fixed Lag Tests
-
-</td>
-
-<td>
-
-| Test               | Statitic | L hat | p-value |
-| :----------------- | :------- | :---- | :------ |
-| Bootstrap-Jin      | 10.669   | 6     | 0.007   |
-| Bootstrap-Bartlett | 34.804   | 3     | 0.009   |
-
-Automatic Lag Selection Tests
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
+    ## 
+    ##  Fixed Lag Tests:
+    ##  
+    ##       Test Chi-Sq df p-value
+    ##  Dependent 59.006 13       0
+    ## 
+    ##  Weighted Fixed Lag Tests:
+    ##  
+    ##                Test  Gamma alpha  beta p-value
+    ##  Weighted Dependent 50.911 3.517 1.392       0
+    ## 
+    ##  Automatic Lag Selection Tests:
+    ##  
+    ##                Test Statitic L hat p-value
+    ##       Bootstrap-Jin   10.669     6   0.007
+    ##  Bootstrap-Bartlett   34.804     3   0.009
 
 All tests reject the null hypothesis of equality of autocovariances up
 to lag 12.

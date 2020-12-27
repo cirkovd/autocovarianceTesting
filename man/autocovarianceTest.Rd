@@ -102,8 +102,10 @@ X <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 1]))
 Y <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 2]))
 
 # Run tests for equality of autocovariance functions up to lag 5
-autocovarianceTest(X, Y, L = 5, test = c("Independent","Dependent","bootDependent","bootBartlett"))
+output <- autocovarianceTest(X, Y, L = 5, 
+test = c("Independent","Dependent","bootDependent","bootBartlett"))
 # All tests fail to reject the null
+output
 
 ## In males and females, do monthly lung deaths in the UK from 1974-1979
 ## have the same autocovariance structure?
@@ -145,7 +147,8 @@ qqline(female_stnd)
 ccf(female_stnd, male_stnd) # Clear lag zero correlation
 
 # The series are likely gaussian and dependent, hence it makes most sense to use "Dependent" test
-autocovarianceTest(matrix(male_stnd), matrix(female_stnd), 5, test = "Dependent")
+output2 <- autocovarianceTest(matrix(male_stnd), matrix(female_stnd), 5, test = "Dependent")
+output2
 
 # Both the weighted and unweighted tests fail to reject the null hypothesis
 # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
