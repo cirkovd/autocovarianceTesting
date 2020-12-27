@@ -9,6 +9,7 @@ autocovarianceTest(
   Y,
   L = NULL,
   test = "Dependent",
+  trunc = NULL,
   B = 500,
   b = NULL,
   prewhiten = TRUE,
@@ -23,6 +24,8 @@ autocovarianceTest(
 \item{L}{the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \eqn{L} less than the one supplied. If not supplied, \code{L = ceiling((log2(n))^0.9999)}.}
 
 \item{test}{the tests to be performed. Must be a vector containing a subset of \code{"Independent"}, \code{"Dependent"}, \code{"bootDependent"} and \code{"bootBartlett"}.}
+
+\item{trunc}{for the \code{"Independent"}, \code{"Dependent"} and \code{"bootBartlett"} tests, the truncation rule used in Bartlett's formula. If not supplied, \code{trunc = floor(n^(1/3))}.}
 
 \item{B}{for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.}
 
@@ -69,7 +72,8 @@ Perform a hypothesis test for equality of autocovariance functions for two time 
 Consider two \eqn{m}-dimensional, stationary time series with mean zero. \code{autocovarianceTest} tests for equality of autocovariance functions of the respective series. The \code{"Independent"} test is given by Lund et. al (2009). Their test assumes
 independence of the two series and quantifies the distribution of the autocovariance differences through Bartlett's formula (see Brockwell and Davids (1991)). \code{autocovarianceTest} provides the corresponding asymptotic covariance matrix under the null, \code{dep_cov}, the
 chi-square test statistic, \code{ind_stat} and its associated degrees of freedom and p-value, \code{ind_df} and \code{ind_pval}. The \code{"Dependent"} test is an extension of the \code{"Independent"} test to linearly dependent series. If the independence of the series is
-not obvious, the \code{"Dependent"} test can be used without penalty. Both tests assess equality of autocovariances up to a fixed lag \code{L}.
+not obvious, the \code{"Dependent"} test can be used without penalty. Both tests assess equality of autocovariances up to a fixed lag \code{L}. The \code{trunc} parameter controls the truncation of the Bartlett formula infinite sum (see the vignette for more details). Any truncation rule
+must follow the assumptions of Theorem A.1 in Berkes et al. (2006).
 
 When running either the \code{"Independent"} or \code{"Dependent"} test, \code{autocovarianceTest} also computes weighted variants. The weighting idea is borrowed from goodness-of-fit testing (see Fisher and Gallagher (2012)). We assign to lags \eqn{0, 1, \dots , L} weights
 \eqn{1, L/(L + 1), \dots , 1/(L + 1)}. The corresponding test statistics have distributions that can be approximated by a Gamma distribution. For the \code{"Independent"} test, \code{autocovarianceTest} outputs the test statistic, \code{ind_weight_stat}, its gamma distribtion
@@ -149,7 +153,8 @@ acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 
 }
 \references{
-Brockwell, P. J., and Davis, R. A. (1991). \emph{Time series: theory and methods (Second ed.). New York: Springer-Verlag. }\cr
+Berkes, I., Horvath, L., Kokoszka, P. and Shao, Q. M. (2006). \emph{On discriminating between longrange dependence and changes in the mean. Annals of Statistics, 34, 1140–65}\cr
+\cr Brockwell, P. J., and Davis, R. A. (1991). \emph{Time series: theory and methods (Second ed.). New York: Springer-Verlag. }\cr
 \cr Fisher, T. J., and Gallagher, C. M. (2012).  \emph{New weighted portmanteau statistics for time series goodness  of  fit  testing, J.  Amer.  Statist.  Assoc., 107(498),  777–787}\cr
 \cr Jin, L., Cai, L., and Wang, S. (2019).  \emph{A computational bootstrap procedure to compare two dependent  time  series, Journal  of  Statistical  Computation  and  Simulation, 89(15), 2831–2847}\cr
 \cr Lund, R., Bassily, H., and Vidakovic, B. (2009). \emph{Testing equality of stationary autocovariances, Journal of Time Series Analysis, 30(3), 332–348}\cr

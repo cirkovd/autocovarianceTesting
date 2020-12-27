@@ -327,11 +327,11 @@ test_that("Functions work", {
   
   # Try a multivariate example
   out1 <- get.covar.matrix(cbind(X1, X2, Y1, Y2), 5, corr_only = FALSE)
-  out2 <- calculateCovariance(cbind(X1, X2), cbind(Y1, Y2), 5)
+  out2 <- calculateCovariance(cbind(X1, X2), cbind(Y1, Y2), 5, round(n^(1/3)))
   
   # Try a univariate example
   out3 <- get.covar.matrix(cbind(X1, Y1), 5, corr_only = FALSE)
-  out4 <- calculateCovariance(matrix(X1), matrix(Y1), 5)
+  out4 <- calculateCovariance(matrix(X1), matrix(Y1), 5, round(n^(1/3)))
   
   # Multivariate
   expect_equal(out1[[1]][-2], out2[[1]], check.attributes = FALSE, tolerance = 0.0000001)
@@ -345,7 +345,7 @@ test_that("Functions work", {
   
   microbenchmark(
     get.covar.matrix(cbind(X1, X2, Y1, Y2), 5, corr_only = FALSE),
-    calculateCovariance(cbind(X1, X2), cbind(Y1, Y2), 5),
+    calculateCovariance(cbind(X1, X2), cbind(Y1, Y2), 5, round(n^(1/3))),
     times = 10
   )
   # 80 times faster
@@ -410,7 +410,7 @@ test_that("Functions work", {
   plot(gasRate, type = "l")
   plot(gasCO2, type = "l")
   
-  out <- autocovarianceTest(matrix(gasRate), matrix(gasCO2), L = 5, B = 2000, test = c("bootDependent", "bootBartlett"))
+  out <- autocovarianceTest(matrix(gasRate), matrix(gasCO2), L = 5, trunc = NULL, B = 2000, test = c("bootDependent", "bootBartlett"))
   
   
   set.seed(1234)
@@ -427,52 +427,52 @@ test_that("Functions work", {
   # b larger than n
   expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = Lgood, test = testgood, 
                                   B = Bgood, b = 1000, prewhiten = prewhitengood, 
-                                  plot = plotgood))
+                                  plot = plotgood, trunc = NULL))
   
   # b is not a integer
   expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = Lgood, test = testgood, 
                                   B = Bgood, b = 2.5, prewhiten = prewhitengood, 
-                                  plot = plotgood))
+                                  plot = plotgood, trunc = NULL))
   
   # L larger than n
   expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = 1000, test = testgood, 
                                   B = Bgood, b = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood))
+                                  plot = plotgood, trunc = NULL))
   
   # L is not a integer
   expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = 1.5, test = testgood, 
                                   B = Bgood, b = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood))
+                                  plot = plotgood, trunc = NULL))
   
   # B is not a integer
   expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = Lgood, test = testgood, 
                                   B = 1.5, b = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood))
+                                  plot = plotgood, trunc = NULL))
   
   # test contains something strange
   expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = Lgood, test = c("banana", "Dependent"), 
                                   B = Bgood, b = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood))
+                                  plot = plotgood, trunc = NULL))
   
   # prewhiten contains something strange
   expect_error(autocovarianceTest(X = Xgood, Y = Ygood, L = Lgood, test = testgood, 
                                   B = Bgood, b = bgood, prewhiten = "banana", 
-                                  plot = plotgood))
+                                  plot = plotgood, trunc = NULL))
   
   # X has missing values 
   expect_error(autocovarianceTest(X = matrix(NA, nrow = 100, ncol = 2), Y = Ygood, L = Lgood, test = testgood, 
                                   B = Bgood, b = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood))
+                                  plot = plotgood, trunc = NULL))
   
   # X and Y are of different dimension
   expect_error(autocovarianceTest(X = matrix(1, nrow = 100, ncol = 3), Y = Ygood, L = Lgood, test = testgood, 
                                   B = Bgood, b = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood))
+                                  plot = plotgood, trunc = NULL))
   
   # X and Y are of different length
   expect_error(autocovarianceTest(X = matrix(1, nrow = 101, ncol = 2), Y = Ygood, L = Lgood, test = testgood, 
                                   B = Bgood, b = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood))
+                                  plot = plotgood, trunc = NULL))
   
   
   

@@ -140,7 +140,7 @@ CLE <- matrix(CLE)
 set.seed(1234)
 autocovarianceTest(X = NYC, Y = CLE, L = 5, 
                    test = c("Independent", "Dependent", "bootDependent", "bootBartlett"), 
-                   B = 500, b = NULL, prewhiten = TRUE, plot = TRUE)
+                   B = 500, b = NULL, prewhiten = TRUE, plot = TRUE, trunc = NULL)
 ```
 
 Interestingly, when violating the independence assumption, the `"Independent"` tests fail to reject the null hypothesis, giving a different outcome than the other unweighted tests. In this case, emphasizing earlier lags also results in a failure to reject the null hypothesis. Given the Gaussian nature of the series, the `"Dependent"` unweighted test seems most trustworthy, and its conclusion is further bolstered by the 

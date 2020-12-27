@@ -9,7 +9,7 @@ NULL
 library(ggplot2)
 
 # Function to run compatibility checks
-compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
+compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
   # Get ts length
   n <- nrow(X)
   
@@ -47,12 +47,17 @@ compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
   }
   
   # L must be numeric
-  if ( !is.numeric(L) | !((L == round(L)) & (L >= 0)) ){
+  if ( !is.numeric(L) ){
+    stop(paste("L must be numeric and a positive integer"))
+  }
+  
+  # L must be nonnegative
+  if ( !((L == round(L)) & (L >= 0)) ){
     stop(paste("L must be numeric and a positive integer"))
   }
   
   # L must be less than n
-  if ( L >= (n - p) ){
+  if ( L >= (n - p - 1) ){
     stop(paste("L must be strictly less than n the length of the series (minus AR order if prewhitening)"))
   }
   
@@ -62,17 +67,22 @@ compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
   }
   
   # b must be numeric
-  if ( !is.numeric(b) | !((b == round(b)) & (b >= 2)) ){
+  if ( !is.numeric(b) ){
+    stop(paste("b must be an integer and larger than 2"))
+  }
+  
+  # b must be larger than 2
+  if ( !((b == round(b)) & (b >= 2)) ){
     stop(paste("b must be an integer and larger than 2"))
   }
   
   # b must be less than n
-  if ( b >= (n - p) ){
+  if ( b >= (n - p - 1) ){
     stop(paste("b must be strictly less than n the length of the series (minus AR order if prewhitening)"))
   }
   
   # Dimension of time series must be smaller than n
-  if ( ncol(X) >= (n - p)){
+  if ( ncol(X) >= (n - p - 1)){
     stop(paste("The dimension of the series must be smaller than its length (minus AR order if prewhitening)"))
   }
   
@@ -82,8 +92,33 @@ compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
   }
   
   # B must be numeric
-  if ( !is.numeric(B) | !((B == round(B)) & (B >= 1)) ){
+  if ( !is.numeric(B)){
     stop(paste("B must be an integer and larger than 1"))
+  }
+  
+  # B must be larger than 1
+  if (!((B == round(B)) & (B >= 1)) ){
+    stop(paste("B must be an integer and larger than 1"))
+  }
+  
+  # Set trunc if not supplied
+  if ( is.null(trunc) ){
+    trunc <- floor((n - p)^(1/3))
+  }
+  
+  # trunc must be numeric
+  if ( !is.numeric(trunc) ){
+    stop(paste("trunc must be numeric and a positive integer"))
+  }
+  
+  # trunc must be greater than 0
+  if ( !((trunc == round(trunc)) & (trunc >= 0)) ){
+    stop(paste("trunc must be numeric and a positive integer"))
+  }
+  
+  # trunc must be less than n
+  if ( trunc >= (n - p - 1) ){
+    stop(paste("trunc must be strictly less than n the length of the series (minus AR order if prewhitening)"))
   }
   
   # prewhiten must be boolean
@@ -96,7 +131,7 @@ compatibilityChecks <- function(X, Y, L, test, B, b, prewhiten, plot){
     stop(paste("plot must be logical"))
   }
   
-  return(list(L, b))
+  return(list(L, b, trunc))
 }
 
 # Function to create a autocovariance difference plot
@@ -138,6 +173,7 @@ acvfPlot <- function(X, Y, L){
 #' @param Y a \eqn{n x m} mean zero (column-wise) stationary time series with \eqn{m < n}. Must be a matrix.
 #' @param L the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \eqn{L} less than the one supplied. If not supplied, \code{L = ceiling((log2(n))^0.9999)}.
 #' @param test the tests to be performed. Must be a vector containing a subset of \code{"Independent"}, \code{"Dependent"}, \code{"bootDependent"} and \code{"bootBartlett"}.
+#' @param trunc for the \code{"Independent"}, \code{"Dependent"} and \code{"bootBartlett"} tests, the truncation rule used in Bartlett's formula. If not supplied, \code{trunc = floor(n^(1/3))}.
 #' @param B for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.
 #' @param b for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{b = max(floor(0.5 * n^(1/3)), 2)}.
 #' @param prewhiten for the \code{"bootDependent"} and \code{"bootBartlett"} tests, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.
@@ -176,7 +212,8 @@ acvfPlot <- function(X, Y, L){
 #' @details Consider two \eqn{m}-dimensional, stationary time series with mean zero. \code{autocovarianceTest} tests for equality of autocovariance functions of the respective series. The \code{"Independent"} test is given by Lund et. al (2009). Their test assumes
 #' independence of the two series and quantifies the distribution of the autocovariance differences through Bartlett's formula (see Brockwell and Davids (1991)). \code{autocovarianceTest} provides the corresponding asymptotic covariance matrix under the null, \code{dep_cov}, the
 #' chi-square test statistic, \code{ind_stat} and its associated degrees of freedom and p-value, \code{ind_df} and \code{ind_pval}. The \code{"Dependent"} test is an extension of the \code{"Independent"} test to linearly dependent series. If the independence of the series is 
-#' not obvious, the \code{"Dependent"} test can be used without penalty. Both tests assess equality of autocovariances up to a fixed lag \code{L}.
+#' not obvious, the \code{"Dependent"} test can be used without penalty. Both tests assess equality of autocovariances up to a fixed lag \code{L}. The \code{trunc} parameter controls the truncation of the Bartlett formula infinite sum (see the vignette for more details). Any truncation rule 
+#' must follow the assumptions of Theorem A.1 in Berkes et al. (2006).
 #' 
 #' When running either the \code{"Independent"} or \code{"Dependent"} test, \code{autocovarianceTest} also computes weighted variants. The weighting idea is borrowed from goodness-of-fit testing (see Fisher and Gallagher (2012)). We assign to lags \eqn{0, 1, \dots , L} weights
 #' \eqn{1, L/(L + 1), \dots , 1/(L + 1)}. The corresponding test statistics have distributions that can be approximated by a Gamma distribution. For the \code{"Independent"} test, \code{autocovarianceTest} outputs the test statistic, \code{ind_weight_stat}, its gamma distribtion
@@ -191,7 +228,8 @@ acvfPlot <- function(X, Y, L){
 #' 
 #' For more on key assumptions behind each of the tests and a thorough example, please see the vignette. 
 #' 
-#' @references Brockwell, P. J., and Davis, R. A. (1991). \emph{Time series: theory and methods (Second ed.). New York: Springer-Verlag. }\cr 
+#' @references Berkes, I., Horvath, L., Kokoszka, P. and Shao, Q. M. (2006). \emph{On discriminating between longrange dependence and changes in the mean. Annals of Statistics, 34, 1140–65}\cr
+#' \cr Brockwell, P. J., and Davis, R. A. (1991). \emph{Time series: theory and methods (Second ed.). New York: Springer-Verlag. }\cr 
 #' \cr Fisher, T. J., and Gallagher, C. M. (2012).  \emph{New weighted portmanteau statistics for time series goodness  of  fit  testing, J.  Amer.  Statist.  Assoc., 107(498),  777–787}\cr 
 #' \cr Jin, L., Cai, L., and Wang, S. (2019).  \emph{A computational bootstrap procedure to compare two dependent  time  series, Journal  of  Statistical  Computation  and  Simulation, 89(15), 2831–2847}\cr 
 #' \cr Lund, R., Bassily, H., and Vidakovic, B. (2009). \emph{Testing equality of stationary autocovariances, Journal of Time Series Analysis, 30(3), 332–348}\cr
@@ -260,16 +298,17 @@ acvfPlot <- function(X, Y, L){
 #' # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
 #' acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 #' 
-autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, b = NULL, prewhiten = TRUE, plot = TRUE){
+autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", trunc = NULL, B = 500, b = NULL, prewhiten = TRUE, plot = TRUE){
   
   # If X and Y are vectors, put them in the correct format
   X <- t(t(X))
   Y <- t(t(Y))
   
   # Compatibility Tests and reassign L if need be
-  Lb <- compatibilityChecks(X, Y, L, test, B, b, prewhiten, plot)
+  Lb <- compatibilityChecks(X, Y, L, test, trunc, B, b, prewhiten, plot)
   L <- Lb[[1]]
   b <- Lb[[2]]
+  trunc <- Lb[[3]]
   
   # Get some info
   n <- nrow(X)
@@ -281,7 +320,7 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, b = 
   # Compute independent and dependent tests if need be
   if ("Independent" %in% test | "Dependent" %in% test){
     # Compute dependent covariance
-    deltaCovar <- calculateCovariance(X, Y, L)
+    deltaCovar <- calculateCovariance(X, Y, L, trunc)
     out <- c(out, deltaCovar)
     # Compute test statistics
     if ("Independent" %in% test){
@@ -302,13 +341,22 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "Dependent", B = 500, b = 
     }
   }
   
-  # Compute bootstrapped tests if need be
-  if ("bootDependent" %in% test | "bootBartlett" %in% test){
-    bootTest <- calculateBootTestStat(X, Y, L, B, b, prewhiten)
-    if("bootDependent" %in% test & !("bootBartlett" %in% test)){ out <- c(out, bootTest[seq(1, 7, by = 2)]) }
-    if(!("bootDependent" %in% test) & "bootBartlett" %in% test){ out <- c(out, bootTest[seq(2, 8, by = 2)]) }
-    if("bootDependent" %in% test & "bootBartlett" %in% test){ out <- c(out, bootTest) }
+  if ("bootDependent" %in% test & "bootBartlett" %in% test){
+    bootTest <- calculateBootTestStat(X, Y, L, B, b, prewhiten, trunc)
+    out <- c(out, bootTest)
+  } else {
+    # Compute bootstrapped tests if need be
+    if ("bootDependent" %in% test){
+      bootTest <- calculateBootTestStatJin(X, Y, L, B, b, prewhiten, trunc)
+      out <- c(out, bootTest)
+    }
+    
+    if ("bootBartlett" %in% test){
+      bootTest <- calculateBootTestStatBartlett(X, Y, L, B, b, prewhiten, trunc)
+      out <- c(out, bootTest)
+    }
   }
+  
   
   # Create a nice table to output
   

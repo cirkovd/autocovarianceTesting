@@ -5,15 +5,23 @@ calculateAutocovariance <- function(X, Y, maxLag) {
     .Call(`_autocovarianceTesting_calculateAutocovariance`, X, Y, maxLag)
 }
 
-calculateCovariance <- function(X, Y, L) {
-    .Call(`_autocovarianceTesting_calculateCovariance`, X, Y, L)
+calculateCovariance <- function(X, Y, L, trunc) {
+    .Call(`_autocovarianceTesting_calculateCovariance`, X, Y, L, trunc)
 }
 
 calculateTestStat <- function(delta, covar, n, L, k) {
     .Call(`_autocovarianceTesting_calculateTestStat`, delta, covar, n, L, k)
 }
 
-calculateBootTestStat <- function(X, Y, L, B, b, prewhiten) {
-    .Call(`_autocovarianceTesting_calculateBootTestStat`, X, Y, L, B, b, prewhiten)
+calculateBootTestStat <- function(X, Y, L, B, b, prewhiten, trunc) {
+    .Call(`_autocovarianceTesting_calculateBootTestStat`, X, Y, L, B, b, prewhiten, trunc)
+}
+
+calculateBootTestStatJin <- function(X, Y, L, B, b, prewhiten, trunc) {
+    .Call(`_autocovarianceTesting_calculateBootTestStatJin`, X, Y, L, B, b, prewhiten, trunc)
+}
+
+calculateBootTestStatBartlett <- function(X, Y, L, B, b, prewhiten, trunc) {
+    .Call(`_autocovarianceTesting_calculateBootTestStatBartlett`, X, Y, L, B, b, prewhiten, trunc)
 }
 
