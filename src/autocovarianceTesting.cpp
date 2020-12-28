@@ -67,7 +67,6 @@ double bartlettForumla(const arma::cube & acf_H0, const int trunc, const int a, 
 // [[Rcpp::export]]
 Rcpp::List calculateCovariance(const arma::mat & X, const arma::mat & Y, const double & L, const int & trunc) {
     // Get some details from the inputs
-    int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
     
     int maxLag = trunc + L + 2;

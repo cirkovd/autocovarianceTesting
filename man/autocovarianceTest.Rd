@@ -8,12 +8,12 @@ autocovarianceTest(
   X,
   Y,
   L = NULL,
-  test = "bootDependent",
+  test = "bootBartlett",
   trunc = NULL,
   B = 500,
   b = NULL,
   prewhiten = TRUE,
-  plot = TRUE
+  plot = FALSE
 )
 }
 \arguments{

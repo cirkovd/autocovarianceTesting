@@ -8,9 +8,18 @@ NULL
 # Function to run compatibility checks
 compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
   
+  # X and Y must have the same class
+  if ( class(X)[[1]] != class(Y)[[1]] ){
+    stop(paste("X and Y must have the same class"))
+  }
+  
   # X and Y must be matrices
-  if ( (!(is.matrix(X))) | (!(is.matrix(Y))) ){
-    stop(paste("X and Y must be matrices"))
+  if ( (!(is.matrix(X))) ){
+    if ( (!(stats::is.ts(X))) ){
+      if ( (!(is.vector(X))) ){
+        stop(paste("X and Y must be matrices, ts objects, or vectors"))
+      }
+    }
   }
   
   # If X and Y are vectors, put them in the correct format
@@ -133,7 +142,17 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
     stop(paste("plot must be logical"))
   }
   
-  return(list(L, b, trunc))
+  # b Warning
+  if ( b < 3 ){
+    warning("b is small (b < 3), bootstrap resamples may not be representative")
+  }
+  
+  # B warning
+  if ( B < 100 ){
+    warning("B is small (B < 100), results may not be reliable")
+  }
+  
+  return(list(L, b, trunc, X, Y))
 }
 
 
@@ -433,13 +452,15 @@ acvfPlot <- function(X, Y, L){
 #' # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
 #' acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 #' 
-autocovarianceTest <- function(X, Y, L = NULL, test = "bootDependent", trunc = NULL, B = 500, b = NULL, prewhiten = TRUE, plot = TRUE){
+autocovarianceTest <- function(X, Y, L = NULL, test = "bootBartlett", trunc = NULL, B = 500, b = NULL, prewhiten = TRUE, plot = FALSE){
   
   # Compatibility Tests and reassign L if need be
   Lb <- compatibilityChecks(X, Y, L, test, trunc, B, b, prewhiten, plot)
   L <- Lb[[1]]
   b <- Lb[[2]]
   trunc <- Lb[[3]]
+  X <- Lb[[4]]
+  Y <- Lb[[5]]
   
   # Get some info
   n <- nrow(X)
@@ -495,7 +516,7 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "bootDependent", trunc = N
   
   class(out) <- "acvfTest"
 
-  return(invisible(out))
+  return(out)
   
 }
 
