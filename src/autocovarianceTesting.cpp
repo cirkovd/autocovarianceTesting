@@ -415,7 +415,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
     arma::colvec stats(L_max + 1, fill::zeros);
     arma::colvec delta = covar_stats["delta"];
-    arma::mat covar = covar_stats["dep_cov"];
+    //arma::mat covar = covar_stats["dep_cov"];
     
     // Compute null distribution of test statistics
     arma::mat S_r_L_jin(B, L_max + 1, fill::zeros);
@@ -431,7 +431,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
             S_r_L_bart(l, r) = n * as_scalar(trans(diff.rows(0, dim).col(l)) * bart_inv * diff.rows(0, dim).col(l)) - 2 * (k * k * r + (k * (k + 1) / 2));
         }
         Sample_S_r_L(r) = n * as_scalar(trans(delta.rows(0, dim)) * sigma_inv * delta.rows(0, dim))  - 2 * (k * k * r + (k * (k + 1) / 2));
-        stats(r) = n * as_scalar(trans(delta.rows(0, dim)) * solve(covar.rows(0, dim).cols(0, dim), delta.rows(0, dim))) - 2 * (k * k * r + (k * (k + 1) / 2));
+        stats(r) = n * as_scalar(trans(delta.rows(0, dim)) * bart_inv * delta.rows(0, dim)) - 2 * (k * k * r + (k * (k + 1) / 2));
     }
 
     // Get bootstrapped distributions
@@ -450,7 +450,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     int dim_jin = (Sample_S_r_L.index_max() + 1) * k * k - dupl - 1;
     arma::mat jin_cov = boot_sigmas.slice(jin_L).rows(0, dim_jin).cols(0, dim_jin);
     int dim_bart = (stats.index_max() + 1) * k * k - dupl - 1;
-    arma::mat bart_cov = covar.rows(0, dim_bart).cols(0, dim_bart);
+    arma::mat bart_cov = boot_bart.rows(0, dim_bart).cols(0, dim_bart);
 
     // Compute p-values
     double jin_no_reject = sum(jin_H0 > jin_test);
@@ -782,7 +782,7 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
     Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
     arma::colvec stats(L_max + 1, fill::zeros);
     arma::colvec delta = covar_stats["delta"];
-    arma::mat covar = covar_stats["dep_cov"];
+    //arma::mat covar = covar_stats["dep_cov"];
     
     // Compute null distribution of test statistics
     arma::mat S_r_L_bart(B, L_max + 1, fill::zeros);
@@ -794,7 +794,7 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
         for (int l = 0; l < B; l++){
             S_r_L_bart(l, r) = n * as_scalar(trans(diff.rows(0, dim).col(l)) * bart_inv * diff.rows(0, dim).col(l)) - 2 * (k * k * r + (k * (k + 1) / 2));
         }
-        stats(r) = n * as_scalar(trans(delta.rows(0, dim)) * solve(covar.rows(0, dim).cols(0, dim), delta.rows(0, dim))) - 2 * (k * k * r + (k * (k + 1) / 2));
+        stats(r) = n * as_scalar(trans(delta.rows(0, dim)) * bart_inv * delta.rows(0, dim)) - 2 * (k * k * r + (k * (k + 1) / 2));
     }
     
     // Get bootstrapped distributions
@@ -808,7 +808,7 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
     
     // Get matrix associated with L hat
     int dim_bart = (stats.index_max() + 1) * k * k - dupl - 1;
-    arma::mat bart_cov = covar.rows(0, dim_bart).cols(0, dim_bart);
+    arma::mat bart_cov = boot_bart.rows(0, dim_bart).cols(0, dim_bart);
     
     // Compute p-values
     double bart_no_reject = sum(bart_H0 > bart_test);

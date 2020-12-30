@@ -97,6 +97,9 @@ output <- autocovarianceTest(usconsumption, usincome, L = 12,
                    B = 1000, prewhiten = TRUE, plot = TRUE)
 ```
 
+    ## Warning in compatibilityChecks(X, Y, L, test, trunc, B, b, prewhiten, plot): b
+    ## is small (b < 3), bootstrap resamples may not be representative
+
 ![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
@@ -118,7 +121,7 @@ output
     ##  
     ##                Test Statitic L hat p-value
     ##       Bootstrap-Jin   10.669     6   0.007
-    ##  Bootstrap-Bartlett   34.804     3   0.009
+    ##  Bootstrap-Bartlett   38.247     6   0.006
 
 All tests reject the null hypothesis of equality of autocovariances up
 to lag 12.

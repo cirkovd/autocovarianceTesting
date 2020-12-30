@@ -78,17 +78,17 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
   }
   
   # b must be numeric
-  if ( !is.numeric(b) ){
+  if ( !is.numeric(b) & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
     stop(paste("b must be an integer and larger than 2"))
   }
   
   # b must be larger than 2
-  if ( !((b == round(b)) & (b >= 2)) ){
+  if ( !((b == round(b)) & (b >= 2)) & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
     stop(paste("b must be an integer and larger than 2"))
   }
   
   # b must be less than n
-  if ( b >= (n - p - 1) ){
+  if ( b >= (n - p - 1) & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
     stop(paste("b must be strictly less than n the length of the series (minus AR order + 1 if prewhitening)"))
   }
   
@@ -103,12 +103,12 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
   }
   
   # B must be numeric
-  if ( !is.numeric(B)){
+  if ( !is.numeric(B) & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
     stop(paste("B must be an integer and larger than 1"))
   }
   
   # B must be larger than 1
-  if (!((B == round(B)) & (B >= 1)) ){
+  if (!((B == round(B)) & (B >= 1)) & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
     stop(paste("B must be an integer and larger than 1"))
   }
   
@@ -133,26 +133,34 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
   }
   
   # prewhiten must be boolean
-  if ( !is.logical(prewhiten) ){
-    stop(paste("prewhiten must be logical"))
+  if ((prewhiten == 0 | prewhiten == 1) & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
+    prewhiten = ifelse(prewhiten == 1, TRUE, FALSE)
+  } else {
+    if ( !is.logical(prewhiten) & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
+      stop(paste("prewhiten must be logical"))
+    }
   }
   
   # plot must be boolean
-  if ( !is.logical(plot) ){
-    stop(paste("plot must be logical"))
+  if ((plot == 0 | plot == 1) & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
+    plot = ifelse(plot == 1, TRUE, FALSE)
+  } else {
+    if ( !is.logical(plot) & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
+      stop(paste("plot must be logical"))
+    }
   }
   
   # b Warning
-  if ( b < 3 ){
+  if ( b < 3 & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
     warning("b is small (b < 3), bootstrap resamples may not be representative")
   }
   
   # B warning
-  if ( B < 100 ){
+  if ( B < 100 & ("bootDependent" %in% test | "bootBartlett" %in% test) ){
     warning("B is small (B < 100), results may not be reliable")
   }
   
-  return(list(L, b, trunc, X, Y))
+  return(list(L, b, trunc, X, Y, prewhiten, plot))
 }
 
 
@@ -461,6 +469,8 @@ autocovarianceTest <- function(X, Y, L = NULL, test = "bootBartlett", trunc = NU
   trunc <- Lb[[3]]
   X <- Lb[[4]]
   Y <- Lb[[5]]
+  prewhiten <- Lb[[6]]
+  prewhiten <- Lb[[7]]
   
   # Get some info
   n <- nrow(X)
