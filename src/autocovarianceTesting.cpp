@@ -349,7 +349,9 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     // Compute boostrapped covariance
     arma::mat diff = Delta_l.each_col() - Delta_bar;
     arma::cube cov_mats(k * k * (L_max + 1), k * k * (L_max + 1), B);
+    cov_mats.fill(0);
     arma::cube boot_sigmas(k * k * (L_max + 1), k * k * (L_max + 1), (L_max + 1));
+    boot_sigmas.fill(0);
     // Matrix to help divide by B - 1
     arma::mat div(k * k * (L_max + 1), k * k * (L_max + 1));
     double divide = B - 1;
@@ -377,7 +379,9 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     arma::mat X1 = Z.cols(0, k - 1);
     arma::mat Y1 = Z.cols(k, 2 * k - 1);
     arma::cube bart_mats(k * k * (L_max + 1) - dupl, k * k * (L_max + 1) - dupl, B);
+    bart_mats.fill(0);
     arma::mat cov(k * k * (L_max + 1) - dupl, k * k * (L_max + 1) - dupl);
+    cov.fill(0);
     
     // Compute bartlett covariance for each bootstrap resample
     for (int l = 0; l < B; l++){
@@ -424,8 +428,8 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     int dim = 0;
     for (int r = 0; r < (L_max + 1); r++){
          dim = (r + 1) * k * k - dupl - 1;
-        arma::mat sigma_inv = inv(boot_sigmas.slice(r).rows(0, dim).cols(0, dim));
-        arma::mat bart_inv = inv(boot_bart.rows(0, dim).cols(0, dim));
+        arma::mat sigma_inv = inv_sympd(boot_sigmas.slice(r).rows(0, dim).cols(0, dim));
+        arma::mat bart_inv = inv_sympd(boot_bart.rows(0, dim).cols(0, dim));
         for (int l = 0; l < B; l++){
             S_r_L_jin(l, r) = n * as_scalar(trans(diff.rows(0, dim).col(l)) * sigma_inv * diff.rows(0, dim).col(l)) - 2 * (k * k * r + (k * (k + 1) / 2));
             S_r_L_bart(l, r) = n * as_scalar(trans(diff.rows(0, dim).col(l)) * bart_inv * diff.rows(0, dim).col(l)) - 2 * (k * k * r + (k * (k + 1) / 2));
@@ -560,7 +564,9 @@ Rcpp::List calculateBootTestStatJin(const arma::mat & X, const arma::mat & Y, co
     // Compute boostrapped covariance
     arma::mat diff = Delta_l.each_col() - Delta_bar;
     arma::cube cov_mats(k * k * (L_max + 1), k * k * (L_max + 1), B);
+    cov_mats.fill(0);
     arma::cube boot_sigmas(k * k * (L_max + 1), k * k * (L_max + 1), (L_max + 1));
+    boot_sigmas.fill(0);
     // Matrix to help divide by B - 1
     arma::mat div(k * k * (L_max + 1), k * k * (L_max + 1));
     double divide = B - 1;
@@ -735,18 +741,9 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
     // Step (5) in Jin 2019
     // Compute boostrapped covariance
     arma::mat diff = Delta_l.each_col() - Delta_bar;
-    arma::cube cov_mats(k * k * (L_max + 1), k * k * (L_max + 1), B);
-    arma::cube boot_sigmas(k * k * (L_max + 1), k * k * (L_max + 1), (L_max + 1));
     // Matrix to help divide by B - 1
     arma::mat div(k * k * (L_max + 1), k * k * (L_max + 1));
     double divide = B - 1;
-    div.fill(n/divide);
-    for (int r = k * k - 1; r < k * k * (L_max + 1); r += k * k){
-        for (int l = 0; l < B; l++){
-            cov_mats.slice(l).rows(0, r).cols(0, r) = (diff.rows(0, r).col(l) * trans(diff.rows(0, r).col(l))) % div.rows(0, r).cols(0, r);
-        }
-        boot_sigmas.slice((r + 1)/(k * k) - 1) = sum(cov_mats, 2);
-    }
     div.fill(1/divide);
     
     // OR use bartlett covariance
@@ -764,7 +761,9 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
     arma::mat X1 = Z.cols(0, k - 1);
     arma::mat Y1 = Z.cols(k, 2 * k - 1);
     arma::cube bart_mats(k * k * (L_max + 1) - dupl, k * k * (L_max + 1) - dupl, B);
+    bart_mats.fill(0);
     arma::mat cov(k * k * (L_max + 1) - dupl, k * k * (L_max + 1) - dupl);
+    cov.fill(0);
     
     // Compute bartlett covariance for each bootstrap resample
     for (int l = 0; l < B; l++){
