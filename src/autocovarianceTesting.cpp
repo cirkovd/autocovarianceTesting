@@ -349,18 +349,13 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     arma::mat diff = Delta_l.each_col() - Delta_bar;
     arma::cube cov_mats(k * k * (L_max + 1), k * k * (L_max + 1), B);
     cov_mats.fill(0);
-    arma::cube boot_sigmas(k * k * (L_max + 1), k * k * (L_max + 1), (L_max + 1));
-    boot_sigmas.fill(0);
-    // Matrix to help divide by B - 1
     arma::mat div(k * k * (L_max + 1), k * k * (L_max + 1));
     double divide = B - 1;
     div.fill(n/divide);
-    for (int r = k * k - 1; r < k * k * (L_max + 1); r += k * k){
-        for (int l = 0; l < B; l++){
-            cov_mats.slice(l).rows(0, r).cols(0, r) = (diff.rows(0, r).col(l) * trans(diff.rows(0, r).col(l))) % div.rows(0, r).cols(0, r);
-        }
-        boot_sigmas.slice((r + 1)/(k * k) - 1) = sum(cov_mats, 2);
+    for (int l = 0; l < B; l++){
+        cov_mats.slice(l) = (diff.col(l) * trans(diff.col(l))) % div;
     }
+    arma::mat boot_sigmas = sum(cov_mats, 2);
     div.fill(1/divide);
     
     // OR use bartlett covariance
@@ -428,8 +423,8 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     int dim = 0;
     for (int r = 0; r < (L_max + 1); r++){
          dim = (r + 1) * k * k - dupl - 1;
-        arma::mat sigma_inv = inv_sympd(boot_sigmas.slice(r).rows(0, dim).cols(0, dim));
-        arma::mat bart_inv = inv_sympd(boot_bart.rows(0, dim).cols(0, dim));
+        arma::mat sigma_inv = inv(boot_sigmas.rows(0, dim).cols(0, dim));
+        arma::mat bart_inv = inv(boot_bart.rows(0, dim).cols(0, dim));
         for (int l = 0; l < B; l++){
             S_r_L_jin(l, r) = n * as_scalar(trans(diff.rows(0, dim).col(l)) * sigma_inv * diff.rows(0, dim).col(l)) - 2 * (k * k * r + (k * (k + 1) / 2));
             S_r_L_bart(l, r) = n * as_scalar(trans(diff.rows(0, dim).col(l)) * bart_inv * diff.rows(0, dim).col(l)) - 2 * (k * k * r + (k * (k + 1) / 2));
@@ -452,7 +447,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
 
     // Get matrix associated with L hat
     int dim_jin = (Sample_S_r_L.index_max() + 1) * k * k - dupl - 1;
-    arma::mat jin_cov = boot_sigmas.slice(jin_L).rows(0, dim_jin).cols(0, dim_jin);
+    arma::mat jin_cov = boot_sigmas.rows(0, dim_jin).cols(0, dim_jin);
     int dim_bart = (stats.index_max() + 1) * k * k - dupl - 1;
     arma::mat bart_cov = boot_bart.rows(0, dim_bart).cols(0, dim_bart);
 
@@ -564,18 +559,13 @@ Rcpp::List calculateBootTestStatJin(const arma::mat & X, const arma::mat & Y, co
     arma::mat diff = Delta_l.each_col() - Delta_bar;
     arma::cube cov_mats(k * k * (L_max + 1), k * k * (L_max + 1), B);
     cov_mats.fill(0);
-    arma::cube boot_sigmas(k * k * (L_max + 1), k * k * (L_max + 1), (L_max + 1));
-    boot_sigmas.fill(0);
-    // Matrix to help divide by B - 1
     arma::mat div(k * k * (L_max + 1), k * k * (L_max + 1));
     double divide = B - 1;
     div.fill(n/divide);
-    for (int r = k * k - 1; r < k * k * (L_max + 1); r += k * k){
-        for (int l = 0; l < B; l++){
-            cov_mats.slice(l).rows(0, r).cols(0, r) = (diff.rows(0, r).col(l) * trans(diff.rows(0, r).col(l))) % div.rows(0, r).cols(0, r);
-        }
-        boot_sigmas.slice((r + 1)/(k * k) - 1) = sum(cov_mats, 2);
+    for (int l = 0; l < B; l++){
+        cov_mats.slice(l) = (diff.col(l) * trans(diff.col(l))) % div;
     }
+    arma::mat boot_sigmas = sum(cov_mats, 2);
     div.fill(1/divide);
     
     // OR use bartlett covariance
@@ -620,7 +610,7 @@ Rcpp::List calculateBootTestStatJin(const arma::mat & X, const arma::mat & Y, co
     int dim = 0;
     for (int r = 0; r < (L_max + 1); r++){
         dim = (r + 1) * k * k - dupl - 1;
-        arma::mat sigma_inv = inv(boot_sigmas.slice(r).rows(0, dim).cols(0, dim));
+        arma::mat sigma_inv = inv(boot_sigmas.rows(0, dim).cols(0, dim));
         for (int l = 0; l < B; l++){
             S_r_L_jin(l, r) = n * as_scalar(trans(diff.rows(0, dim).col(l)) * sigma_inv * diff.rows(0, dim).col(l)) - 2 * (k * k * r + (k * (k + 1) / 2));
         }
@@ -638,7 +628,7 @@ Rcpp::List calculateBootTestStatJin(const arma::mat & X, const arma::mat & Y, co
     
     // Get matrix associated with L hat
     int dim_jin = (Sample_S_r_L.index_max() + 1) * k * k - dupl - 1;
-    arma::mat jin_cov = boot_sigmas.slice(jin_L).rows(0, dim_jin).cols(0, dim_jin);
+    arma::mat jin_cov = boot_sigmas.rows(0, dim_jin).cols(0, dim_jin);
     
     // Compute p-values
     double jin_no_reject = sum(jin_H0 > jin_test);
