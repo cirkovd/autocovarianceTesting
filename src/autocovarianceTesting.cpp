@@ -277,7 +277,6 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     }
     
     // Set some parameters for block of blocks bootstrap
-    // int b = floor(std::max(0.5 * cbrt(n), 2.0));
     // no blocks
     int K = ceil(n/b);
     int L_max = L;
@@ -407,11 +406,13 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
             }
             Delta_l.shed_rows(dup4);
             Delta_bar.shed_rows(dup4);
+            diff.shed_rows(dup4);
         } else {
             boot_sigmas.shed_row(2);
             boot_sigmas.shed_col(2);
             Delta_l.shed_row(2);
             Delta_bar.shed_row(2);
+            diff.shed_row(2);
         }
     }
     
@@ -419,8 +420,7 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
     arma::colvec stats(L_max + 1, fill::zeros);
     arma::colvec delta = covar_stats["delta"];
-    //arma::mat covar = covar_stats["dep_cov"];
-    
+
     // Compute null distribution of test statistics
     arma::mat S_r_L_jin(B, L_max + 1, fill::zeros);
     arma::mat S_r_L_bart(B, L_max + 1, fill::zeros);
@@ -492,7 +492,6 @@ Rcpp::List calculateBootTestStatJin(const arma::mat & X, const arma::mat & Y, co
     }
     
     // Set some parameters for block of blocks bootstrap
-    // int b = floor(std::max(0.5 * cbrt(n), 2.0));
     // no blocks
     int K = ceil(n/b);
     int L_max = L;
@@ -602,11 +601,13 @@ Rcpp::List calculateBootTestStatJin(const arma::mat & X, const arma::mat & Y, co
             }
             Delta_l.shed_rows(dup4);
             Delta_bar.shed_rows(dup4);
+            diff.shed_rows(dup4);
         } else {
             boot_sigmas.shed_row(2);
             boot_sigmas.shed_col(2);
             Delta_l.shed_row(2);
             Delta_bar.shed_row(2);
+            diff.shed_row(2);
         }
     }
     
@@ -670,7 +671,6 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
     }
     
     // Set some parameters for block of blocks bootstrap
-    // int b = floor(std::max(0.5 * cbrt(n), 2.0));
     // no blocks
     int K = ceil(n/b);
     int L_max = L;
@@ -757,6 +757,22 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
         div.shed_rows(0, dupl - 1); 
     } 
     
+    // Remove duplicate rows in sigma and delta
+    if ( k > 1 ){
+        arma::mat dup2(k, k, fill::ones);
+        arma::mat dup3 = arma::trimatu(dup2, 1);
+        arma::uvec dup4 = find(vectorise(dup3));
+        if ( k > 2){
+            Delta_l.shed_rows(dup4);
+            Delta_bar.shed_rows(dup4);
+            diff.shed_rows(dup4);
+        } else {
+            Delta_l.shed_row(2);
+            Delta_bar.shed_row(2);
+            diff.shed_row(2);
+        }
+    }
+    
     // initialize matrices
     arma::mat X1 = Z.cols(0, k - 1);
     arma::mat Y1 = Z.cols(k, 2 * k - 1);
@@ -781,8 +797,7 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
     Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
     arma::colvec stats(L_max + 1, fill::zeros);
     arma::colvec delta = covar_stats["delta"];
-    //arma::mat covar = covar_stats["dep_cov"];
-    
+
     // Compute null distribution of test statistics
     arma::mat S_r_L_bart(B, L_max + 1, fill::zeros);
     arma::colvec Sample_S_r_L(L_max + 1, fill::zeros);
