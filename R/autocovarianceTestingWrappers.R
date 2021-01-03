@@ -160,13 +160,13 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
     warning("B is small (B < 100), results may not be reliable")
   }
   
-  return(list(L, b, trunc, X, Y, prewhiten, plot))
+  return(list(L, b, trunc, X, Y, prewhiten, plot, B))
 }
 
 
-#' Summarizing autocovarianceTest function output
+#' Summarizing autocovariance_test function output
 #'
-#' @param x a \code{"acvfTest"} object given by \code{"autocovarianceTest()"}.
+#' @param x a \code{"acvfTest"} object given by \code{"autocovariance_test()"}.
 #' @param ... additional arguments to \link[base]{print}.
 #'
 #' @export
@@ -185,7 +185,7 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot){
 #' Y <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 2]))
 #' 
 #' # Run tests for equality of autocovariance functions up to lag 5
-#' output <- autocovarianceTest(X, Y, L = 5, 
+#' output <- autocovariance_test(X, Y, max_lag = 5, 
 #' test = c("Independent","Dependent","bootDependent","bootBartlett"))
 #' # All tests fail to reject the null
 #' print(output)
@@ -330,11 +330,11 @@ acvfPlot <- function(X, Y, L){
 #'
 #' @param X a \eqn{n x m} mean zero (column-wise) stationary time series with \eqn{m < n}. Must be a matrix.
 #' @param Y a \eqn{n x m} mean zero (column-wise) stationary time series with \eqn{m < n}. Must be a matrix.
-#' @param L the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \eqn{L} less than the one supplied. If not supplied, \code{L = ceiling((log2(n))^0.9999)}.
+#' @param max_lag the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \code{max_lag} less than the one supplied. If not supplied, \code{max_lag = ceiling((log2(n))^0.9999)}.
 #' @param test the tests to be performed. Must be a vector containing a subset of \code{"Independent"}, \code{"Dependent"}, \code{"bootDependent"} and \code{"bootBartlett"}.
 #' @param trunc for the \code{"Independent"}, \code{"Dependent"} and \code{"bootBartlett"} tests, the truncation rule used in Bartlett's formula. If not supplied, \code{trunc = floor(n^(1/3))}.
-#' @param B for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.
-#' @param b for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{b = max(floor(0.5 * n^(1/3)), 2)}.
+#' @param num_bootstrap for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.
+#' @param block_size for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{block_size = max(floor(0.5 * n^(1/3)), 2)}.
 #' @param prewhiten for the \code{"bootDependent"} and \code{"bootBartlett"} tests, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.
 #' @param plot should a plot of the tested sample autocovariances be made?
 #'
@@ -368,21 +368,21 @@ acvfPlot <- function(X, Y, L){
 #' }
 #' @export 
 #'
-#' @details Consider two \eqn{m}-dimensional, stationary time series with mean zero. \code{autocovarianceTest} tests for equality of autocovariance functions of the respective series. The \code{"Independent"} test is given by Lund et. al (2009). Their test assumes
-#' independence of the two series and quantifies the distribution of the autocovariance differences through Bartlett's formula (see Brockwell and Davids (1991)). \code{autocovarianceTest} provides the corresponding asymptotic covariance matrix under the null, \code{dep_cov}, the
+#' @details Consider two \eqn{m}-dimensional, stationary time series with mean zero. \code{autocovariance_test} tests for equality of autocovariance functions of the respective series. The \code{"Independent"} test is given by Lund et. al (2009). Their test assumes
+#' independence of the two series and quantifies the distribution of the autocovariance differences through Bartlett's formula (see Brockwell and Davids (1991)). \code{autocovariance_test} provides the corresponding asymptotic covariance matrix under the null, \code{dep_cov}, the
 #' chi-square test statistic, \code{ind_stat} and its associated degrees of freedom and p-value, \code{ind_df} and \code{ind_pval}. The \code{"Dependent"} test is an extension of the \code{"Independent"} test to linearly dependent series. If the independence of the series is 
 #' not obvious, the \code{"Dependent"} test can be used without penalty. Both tests assess equality of autocovariances up to a fixed lag \code{L}. The \code{trunc} parameter controls the truncation of the Bartlett formula infinite sum (see the vignette for more details). Any truncation rule 
 #' must follow the assumptions of Theorem A.1 in Berkes et al. (2006).
 #' 
-#' When running either the \code{"Independent"} or \code{"Dependent"} test, \code{autocovarianceTest} also computes weighted variants. The weighting idea is borrowed from goodness-of-fit testing (see Fisher and Gallagher (2012)). We assign to lags \eqn{0, 1, \dots , L} weights
-#' \eqn{1, L/(L + 1), \dots , 1/(L + 1)}. The corresponding test statistics have distributions that can be approximated by a Gamma distribution. For the \code{"Independent"} test, \code{autocovarianceTest} outputs the test statistic, \code{ind_weight_stat}, its gamma distribtion
+#' When running either the \code{"Independent"} or \code{"Dependent"} test, \code{autocovariance_test} also computes weighted variants. The weighting idea is borrowed from goodness-of-fit testing (see Fisher and Gallagher (2012)). We assign to lags \eqn{0, 1, \dots , L} weights
+#' \eqn{1, L/(L + 1), \dots , 1/(L + 1)}. The corresponding test statistics have distributions that can be approximated by a Gamma distribution. For the \code{"Independent"} test, \code{autocovariance_test} outputs the test statistic, \code{ind_weight_stat}, its gamma distribtion
 #' parameters, \code{ind_alpha} and \code{ind_beta}, and the associated p-value \code{ind_weight_pval}. The same statistics for \code{"Dependent"} are given by \code{dep_weight_stat}, \code{dep_alpha}, \code{dep_beta} and \code{dep_weight_pval}. All previously mentioned tests
 #' require Gaussianity of the series. The following two tests can be applied to series with non-normal distributions. 
 #' 
 #' The \code{"bootDependent"} (see Jin et. al (2019)) and \code{"bootBartlett"} tests compute a similar test statistic to the \code{"Dependent"} test but through a block of blocks bootstrap. The original test statistic is monotone increasing with lag, so the tests apply
 #' an AIC-like penalty to choose the "best" lag (up to \code{L}) to perform the hypothesis test with. This provides some desirable properties under the alternative hypothesis. \code{prewhiten = TRUE} fits a large VAR(p) process to \code{X} and \code{Y} and then applies 
 #' the tests to the residuals of said process. It is highly recommended as prewhitening improves empirical rejection rates. \code{B} and \code{b} control the number of bootstrap resamples and block length used in the \code{"bootDependent"} and \code{"bootBartlett"} tests. \code{"bootBartlett"} replaces the Jin 
-#' et. al (2019) covariance estimate with the \code{"Dependent"} estimate averaged over each bootstrap resample. For the \code{"bootDependent"} test, \code{autocovarianceTest} outputs the test statistic, \code{jin_stat}, the optimally selected lag, \code{jin_L}, the 
+#' et. al (2019) covariance estimate with the \code{"Dependent"} estimate averaged over each bootstrap resample. For the \code{"bootDependent"} test, \code{autocovariance_test} outputs the test statistic, \code{jin_stat}, the optimally selected lag, \code{jin_L}, the 
 #' estimated covariance under the null, \code{jin_cov}, and psuedo p-value \code{jin_pval}. The same statistics for \code{"bootBartlett"} are given by \code{bart_stat}, \code{bart_L}, \code{bart_cov} and \code{bart_pval}.
 #' 
 #' For more on key assumptions behind each of the tests and a thorough example, please see the vignette. 
@@ -408,7 +408,7 @@ acvfPlot <- function(X, Y, L){
 #' Y <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 2]))
 #' 
 #' # Run tests for equality of autocovariance functions up to lag 5
-#' output <- autocovarianceTest(X, Y, L = 5, 
+#' output <- autocovariance_test(X, Y, max_lag = 5, 
 #' test = c("Independent","Dependent","bootDependent","bootBartlett"))
 #' # All tests fail to reject the null
 #' output
@@ -453,24 +453,25 @@ acvfPlot <- function(X, Y, L){
 #' ccf(female_stnd, male_stnd) # Clear lag zero correlation
 #' 
 #' # The series are likely gaussian and dependent, hence it makes most sense to use "Dependent" test
-#' output2 <- autocovarianceTest(matrix(male_stnd), matrix(female_stnd), 5, test = "Dependent")
+#' output2 <- autocovariance_test(matrix(male_stnd), matrix(female_stnd), 5, test = "Dependent")
 #' output2
 #' 
 #' # Both the weighted and unweighted tests fail to reject the null hypothesis
 #' # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
 #' acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 #' 
-autocovarianceTest <- function(X, Y, L = NULL, test = "bootBartlett", trunc = NULL, B = 500, b = NULL, prewhiten = TRUE, plot = FALSE){
+autocovariance_test <- function(X, Y, max_lag = NULL, test = "bootBartlett", trunc = NULL, num_bootstrap = 500, block_size = NULL, prewhiten = TRUE, plot = FALSE){
   
   # Compatibility Tests and reassign L if need be
-  Lb <- compatibilityChecks(X, Y, L, test, trunc, B, b, prewhiten, plot)
+  Lb <- compatibilityChecks(X, Y, max_lag, test, trunc, num_bootstrap, block_size, prewhiten, plot)
   L <- Lb[[1]]
   b <- Lb[[2]]
   trunc <- Lb[[3]]
   X <- Lb[[4]]
   Y <- Lb[[5]]
   prewhiten <- Lb[[6]]
-  prewhiten <- Lb[[7]]
+  plot <- Lb[[7]]
+  B <- Lb[[8]]
   
   # Get some info
   n <- nrow(X)

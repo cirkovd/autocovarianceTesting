@@ -55,9 +55,9 @@ usincome <- usincome - mean(usincome)
 
 set.seed(4321)
 # Run test for up to lag 12
-output <- autocovarianceTest(usconsumption, usincome, L = 12, 
+output <- autocovariance_test(usconsumption, usincome, max_lag= 12, 
                    test = c("Dependent", "bootBartlett", "bootDependent"),
-                   B = 1000, prewhiten = TRUE, plot = TRUE)
+                   num_bootstrap = 1000, prewhiten = TRUE, plot = TRUE)
 output
 ```
 

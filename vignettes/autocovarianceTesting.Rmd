@@ -156,9 +156,10 @@ NYC <- matrix(NYC)
 CLE <- matrix(CLE)
 
 set.seed(1234)
-output <- autocovarianceTest(X = NYC, Y = CLE, L = 5, 
+output <- autocovariance_test(X = NYC, Y = CLE, max_lag = 5, 
                    test = c("Independent", "Dependent", "bootDependent", "bootBartlett"), 
-                   B = 500, b = NULL, prewhiten = TRUE, plot = TRUE, trunc = NULL)
+                   num_bootstrap = 500, block_size = NULL, prewhiten = TRUE, plot = TRUE,
+                   trunc = NULL)
 output
 ```
 

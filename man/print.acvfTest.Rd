@@ -2,17 +2,17 @@
 % Please edit documentation in R/autocovarianceTestingWrappers.R
 \name{print.acvfTest}
 \alias{print.acvfTest}
-\title{Summarizing autocovarianceTest function output}
+\title{Summarizing autocovariance_test function output}
 \usage{
 \method{print}{acvfTest}(x, ...)
 }
 \arguments{
-\item{x}{a \code{"acvfTest"} object given by \code{"autocovarianceTest()"}.}
+\item{x}{a \code{"acvfTest"} object given by \code{"autocovariance_test()"}.}
 
 \item{...}{additional arguments to \link[base]{print}.}
 }
 \description{
-Summarizing autocovarianceTest function output
+Summarizing autocovariance_test function output
 }
 \examples{
 #' ## Simulate two marignal AR(1) processes that are correlated at lag zero and run tests
@@ -28,7 +28,7 @@ X <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 1]))
 Y <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 2]))
 
 # Run tests for equality of autocovariance functions up to lag 5
-output <- autocovarianceTest(X, Y, L = 5, 
+output <- autocovariance_test(X, Y, max_lag = 5, 
 test = c("Independent","Dependent","bootDependent","bootBartlett"))
 # All tests fail to reject the null
 print(output)
