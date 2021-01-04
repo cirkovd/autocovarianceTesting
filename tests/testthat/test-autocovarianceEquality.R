@@ -354,13 +354,13 @@ test_that("Functions work", {
   
   # Use previous examples, assuming dependence between the two series
   # Multivariate
-  stats1 <- calculateTestStat(out2$delta, out2$dep_cov, n, 5, 2)
-  compare1 <- c(stats1$stat, pchisq(stats1$stat, df = stats1$df, lower.tail = FALSE), stats1$weight_stat, pgamma(stats1$weight_stat, shape = stats1$alpha, scale = stats1$beta, lower.tail = FALSE))
+  stats1 <- calculateTestStat(out2$delta, out2$dep_cov, n, 5, 2, seq(1, 1/6, by = -1/6))
+  compare1 <- c(stats1$stat, pchisq(stats1$stat, df = stats1$df, lower.tail = FALSE), stats1$weight_stat, pgamma(stats1$weight_stat, shape = stats1$weight_alpha, scale = stats1$weight_beta, lower.tail = FALSE))
   compare2 <- c(t(rev(get.one.fixed.lag.test(cbind(X1, X2, Y1, Y2), 5)[3:4, 3:4])))
   
   # Univariate
-  stats2 <- calculateTestStat(out4$delta, out4$dep_cov, n, 5, 1)
-  compare3 <- c(stats2$stat, pchisq(stats2$stat, df = stats2$df, lower.tail = FALSE), stats2$weight_stat, pgamma(stats2$weight_stat, shape = stats2$alpha, scale = stats2$beta, lower.tail = FALSE))
+  stats2 <- calculateTestStat(out4$delta, out4$dep_cov, n, 5, 1, seq(1, 1/6, by = -1/6))
+  compare3 <- c(stats2$stat, pchisq(stats2$stat, df = stats2$df, lower.tail = FALSE), stats2$weight_stat, pgamma(stats2$weight_stat, shape = stats2$weight_alpha, scale = stats2$weight_beta, lower.tail = FALSE))
   compare4 <- c(t(rev(get.one.fixed.lag.test(cbind(X1, Y1), 5)[3:4, 3:4])))
   
   # Multivariate
@@ -410,7 +410,7 @@ test_that("Functions work", {
   plot(gasRate, type = "l")
   plot(gasCO2, type = "l")
   
-  out <- autocovariance_test(matrix(gasRate), matrix(gasCO2), max_lag = 5, trunc = NULL, num_bootstrap = 2000, test = c("bootDependent", "bootBartlett"))
+  out <- autocovariance_test(matrix(gasRate), matrix(gasCO2), max_lag = 5, trunc = NULL, num_bootstrap = 2000, test = c("Auto_Lag_Jin", "Auto_Lag_Bartlett"))
   
   
   set.seed(1234)
@@ -420,7 +420,7 @@ test_that("Functions work", {
   Lgood <- 5
   Bgood <- 10
   bgood <- 3
-  testgood <- c("Independent", "Dependent", "bootDependent", "bootBartlett")
+  testgood <- c("Fixed_Lag", "Weighted_Fixed_Lag", "Auto_Lag_Jin", "Auto_Lag_Bartlett")
   prewhitengood <- TRUE
   plotgood <-TRUE
   

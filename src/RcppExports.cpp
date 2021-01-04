@@ -34,8 +34,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // calculateTestStat
-Rcpp::List calculateTestStat(const arma::colvec& delta, const arma::mat& covar, const int& n, const int& L, const int& k);
-RcppExport SEXP _autocovarianceTesting_calculateTestStat(SEXP deltaSEXP, SEXP covarSEXP, SEXP nSEXP, SEXP LSEXP, SEXP kSEXP) {
+Rcpp::List calculateTestStat(const arma::colvec& delta, const arma::mat& covar, const int& n, const int& L, const int& k, const arma::colvec weight);
+RcppExport SEXP _autocovarianceTesting_calculateTestStat(SEXP deltaSEXP, SEXP covarSEXP, SEXP nSEXP, SEXP LSEXP, SEXP kSEXP, SEXP weightSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -44,13 +44,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
     Rcpp::traits::input_parameter< const int& >::type L(LSEXP);
     Rcpp::traits::input_parameter< const int& >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(calculateTestStat(delta, covar, n, L, k));
+    Rcpp::traits::input_parameter< const arma::colvec >::type weight(weightSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculateTestStat(delta, covar, n, L, k, weight));
     return rcpp_result_gen;
 END_RCPP
 }
 // calculateBootTestStat
-Rcpp::List calculateBootTestStat(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc);
-RcppExport SEXP _autocovarianceTesting_calculateBootTestStat(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP) {
+Rcpp::List calculateBootTestStat(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc, bool const& dependent_series);
+RcppExport SEXP _autocovarianceTesting_calculateBootTestStat(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP, SEXP dependent_seriesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -61,7 +62,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int const& >::type b(bSEXP);
     Rcpp::traits::input_parameter< bool const& >::type prewhiten(prewhitenSEXP);
     Rcpp::traits::input_parameter< int const& >::type trunc(truncSEXP);
-    rcpp_result_gen = Rcpp::wrap(calculateBootTestStat(X, Y, L, B, b, prewhiten, trunc));
+    Rcpp::traits::input_parameter< bool const& >::type dependent_series(dependent_seriesSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculateBootTestStat(X, Y, L, B, b, prewhiten, trunc, dependent_series));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -83,8 +85,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // calculateBootTestStatBartlett
-Rcpp::List calculateBootTestStatBartlett(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc);
-RcppExport SEXP _autocovarianceTesting_calculateBootTestStatBartlett(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP) {
+Rcpp::List calculateBootTestStatBartlett(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc, bool const& dependent_series);
+RcppExport SEXP _autocovarianceTesting_calculateBootTestStatBartlett(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP, SEXP dependent_seriesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -95,7 +97,65 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int const& >::type b(bSEXP);
     Rcpp::traits::input_parameter< bool const& >::type prewhiten(prewhitenSEXP);
     Rcpp::traits::input_parameter< int const& >::type trunc(truncSEXP);
-    rcpp_result_gen = Rcpp::wrap(calculateBootTestStatBartlett(X, Y, L, B, b, prewhiten, trunc));
+    Rcpp::traits::input_parameter< bool const& >::type dependent_series(dependent_seriesSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculateBootTestStatBartlett(X, Y, L, B, b, prewhiten, trunc, dependent_series));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calculateBootTestStatFixed
+Rcpp::List calculateBootTestStatFixed(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc, bool const& dependent_series, const arma::colvec weight);
+RcppExport SEXP _autocovarianceTesting_calculateBootTestStatFixed(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP, SEXP dependent_seriesSEXP, SEXP weightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const double& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< int const& >::type B(BSEXP);
+    Rcpp::traits::input_parameter< int const& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< bool const& >::type prewhiten(prewhitenSEXP);
+    Rcpp::traits::input_parameter< int const& >::type trunc(truncSEXP);
+    Rcpp::traits::input_parameter< bool const& >::type dependent_series(dependent_seriesSEXP);
+    Rcpp::traits::input_parameter< const arma::colvec >::type weight(weightSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculateBootTestStatFixed(X, Y, L, B, b, prewhiten, trunc, dependent_series, weight));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calculateBootTestStatFixedUnweighted
+Rcpp::List calculateBootTestStatFixedUnweighted(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc, bool const& dependent_series, const arma::colvec weight);
+RcppExport SEXP _autocovarianceTesting_calculateBootTestStatFixedUnweighted(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP, SEXP dependent_seriesSEXP, SEXP weightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const double& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< int const& >::type B(BSEXP);
+    Rcpp::traits::input_parameter< int const& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< bool const& >::type prewhiten(prewhitenSEXP);
+    Rcpp::traits::input_parameter< int const& >::type trunc(truncSEXP);
+    Rcpp::traits::input_parameter< bool const& >::type dependent_series(dependent_seriesSEXP);
+    Rcpp::traits::input_parameter< const arma::colvec >::type weight(weightSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculateBootTestStatFixedUnweighted(X, Y, L, B, b, prewhiten, trunc, dependent_series, weight));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calculateBootTestStatFixedWeighted
+Rcpp::List calculateBootTestStatFixedWeighted(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc, bool const& dependent_series, const arma::colvec weight);
+RcppExport SEXP _autocovarianceTesting_calculateBootTestStatFixedWeighted(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP, SEXP dependent_seriesSEXP, SEXP weightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const double& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< int const& >::type B(BSEXP);
+    Rcpp::traits::input_parameter< int const& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< bool const& >::type prewhiten(prewhitenSEXP);
+    Rcpp::traits::input_parameter< int const& >::type trunc(truncSEXP);
+    Rcpp::traits::input_parameter< bool const& >::type dependent_series(dependent_seriesSEXP);
+    Rcpp::traits::input_parameter< const arma::colvec >::type weight(weightSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculateBootTestStatFixedWeighted(X, Y, L, B, b, prewhiten, trunc, dependent_series, weight));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -103,10 +163,13 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_autocovarianceTesting_calculateAutocovariance", (DL_FUNC) &_autocovarianceTesting_calculateAutocovariance, 3},
     {"_autocovarianceTesting_calculateCovariance", (DL_FUNC) &_autocovarianceTesting_calculateCovariance, 4},
-    {"_autocovarianceTesting_calculateTestStat", (DL_FUNC) &_autocovarianceTesting_calculateTestStat, 5},
-    {"_autocovarianceTesting_calculateBootTestStat", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStat, 7},
+    {"_autocovarianceTesting_calculateTestStat", (DL_FUNC) &_autocovarianceTesting_calculateTestStat, 6},
+    {"_autocovarianceTesting_calculateBootTestStat", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStat, 8},
     {"_autocovarianceTesting_calculateBootTestStatJin", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatJin, 7},
-    {"_autocovarianceTesting_calculateBootTestStatBartlett", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatBartlett, 7},
+    {"_autocovarianceTesting_calculateBootTestStatBartlett", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatBartlett, 8},
+    {"_autocovarianceTesting_calculateBootTestStatFixed", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatFixed, 9},
+    {"_autocovarianceTesting_calculateBootTestStatFixedUnweighted", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatFixedUnweighted, 9},
+    {"_autocovarianceTesting_calculateBootTestStatFixedWeighted", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatFixedWeighted, 9},
     {NULL, NULL, 0}
 };
 

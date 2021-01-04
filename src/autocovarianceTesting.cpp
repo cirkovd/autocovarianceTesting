@@ -178,13 +178,13 @@ Rcpp::List calculateCovariance(const arma::mat & X, const arma::mat & Y, const d
 // Function that computes test statistics for fixed lag tests given autocovariance differences
 // and asymptotic covariance matrix
 // [[Rcpp::export]]
-Rcpp::List calculateTestStat(const arma::colvec & delta, const arma::mat & covar, const int & n, const int & L, const int & k) {
+Rcpp::List calculateTestStat(const arma::colvec & delta, const arma::mat & covar, const int & n, const int & L, const int & k, const arma::colvec weight) {
     // Compute unweighted stat
     double stat = n * as_scalar(trans(delta) * solve(covar, delta));  
     
     // Compute weighted stat
-    arma::colvec weights = arma::linspace<arma::colvec>(1, 1/(L + 1), L + 2);
-    weights.shed_row(L + 1);
+    arma::colvec weights = weight;
+    // weights.shed_row(L + 1);
     weights = repelem(weights, k * k, 1);
     // Get rid of duplicates
     int p1 = delta.n_rows;
@@ -201,8 +201,8 @@ Rcpp::List calculateTestStat(const arma::colvec & delta, const arma::mat & covar
     return Rcpp::List::create(Rcpp::Named("stat") = stat,
                               Rcpp::Named("df") = p1,
                               Rcpp::Named("weight_stat") = weight_stat,
-                              Rcpp::Named("alpha") = alpha,
-                              Rcpp::Named("beta") = beta);
+                              Rcpp::Named("weight_alpha") = alpha,
+                              Rcpp::Named("weight_beta") = beta);
 }
 
 
@@ -260,7 +260,7 @@ arma::mat prewhitenData(const arma::mat & Z){
 
 // Function that computes test statistics for order lag tests 
 // [[Rcpp::export]]
-Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc) {
+Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc, bool const & dependent_series) {
     // Get some details from the inputs
     int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
@@ -378,13 +378,17 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     cov.fill(0);
     
     // Compute bartlett covariance for each bootstrap resample
+    std::string assump = "dep_cov";
+    if (dependent_series == false){
+        assump = "ind_cov";
+    } 
     for (int l = 0; l < B; l++){
         arma::mat cov = (calculateCovariance(
             X1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
             Y1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
             L_max,
             trunc
-        )["dep_cov"]);
+        )[assump]);
        bart_mats.slice(l)= cov % div;
     }
     arma::mat boot_bart = sum(bart_mats, 2);
@@ -458,14 +462,14 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     double bart_pval = (bart_no_reject + 1) / (B + 1);
     
     return Rcpp::List::create(
-        Rcpp::Named("jin_stat") = jin_test,
-        Rcpp::Named("bart_stat") = bart_test,
-        Rcpp::Named("jin_L") = jin_L,
-        Rcpp::Named("bart_L") = bart_L,
-        Rcpp::Named("jin_cov") = jin_cov,
-        Rcpp::Named("bart_cov") = bart_cov,
-        Rcpp::Named("jin_pval") = jin_pval,
-        Rcpp::Named("bart_pval") = bart_pval);
+        Rcpp::Named("auto_lag_jin_stat") = jin_test,
+        Rcpp::Named("auto_lag_bart_stat") = bart_test,
+        Rcpp::Named("auto_lag_jin_L") = jin_L,
+        Rcpp::Named("auto_lag_bart_L") = bart_L,
+        Rcpp::Named("auto_lag_jin_cov") = jin_cov,
+        Rcpp::Named("auto_lag_bart_cov") = bart_cov,
+        Rcpp::Named("auto_lag_jin_pval") = jin_pval,
+        Rcpp::Named("auto_lag_bart_pval") = bart_pval);
 }
 
 // Function that just contains Jin test
@@ -636,15 +640,15 @@ Rcpp::List calculateBootTestStatJin(const arma::mat & X, const arma::mat & Y, co
     
     
     return Rcpp::List::create(
-        Rcpp::Named("jin_stat") = jin_test,
-        Rcpp::Named("jin_L") = jin_L,
-        Rcpp::Named("jin_cov") = jin_cov,
-        Rcpp::Named("jin_pval") = jin_pval);
+        Rcpp::Named("auto_lag_jin_stat") = jin_test,
+        Rcpp::Named("auto_lag_jin_L") = jin_L,
+        Rcpp::Named("auto_lag_jin_cov") = jin_cov,
+        Rcpp::Named("auto_lag_jin_pval") = jin_pval);
 }
 
 // Function that just does Bartlett test
 // [[Rcpp::export]]
-Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc) {
+Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc, bool const & dependent_series) {
     // Get some details from the inputs
     int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
@@ -772,13 +776,17 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
     cov.fill(0);
     
     // Compute bartlett covariance for each bootstrap resample
+    std::string assump = "dep_cov";
+    if (dependent_series == false){
+        assump = "ind_cov";
+    } 
     for (int l = 0; l < B; l++){
         arma::mat cov = (calculateCovariance(
             X1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
             Y1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
             L_max,
             trunc
-        )["dep_cov"]);
+        )[assump]);
         bart_mats.slice(l)= cov % div;
     }
     arma::mat boot_bart = sum(bart_mats, 2);
@@ -819,10 +827,431 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
     double bart_pval = (bart_no_reject + 1) / (B + 1);
     
     return Rcpp::List::create(
-        Rcpp::Named("bart_stat") = bart_test,
-        Rcpp::Named("bart_L") = bart_L,
-        Rcpp::Named("bart_cov") = bart_cov,
-        Rcpp::Named("bart_pval") = bart_pval);
+        Rcpp::Named("auto_lag_bart_stat") = bart_test,
+        Rcpp::Named("auto_lag_bart_L") = bart_L,
+        Rcpp::Named("auto_lag_bart_cov") = bart_cov,
+        Rcpp::Named("auto_lag_bart_pval") = bart_pval);
 }
 
+// Function that computes test statistics fixed lag bootstrap
+// [[Rcpp::export]]
+Rcpp::List calculateBootTestStatFixed(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc, bool const & dependent_series, const arma::colvec weight) {
+    // Get some details from the inputs
+    int n = X.n_rows; // time series length
+    int k = X.n_cols; // time series dimension
+    
+    // Concatenate the series
+    arma::mat Z(n, 2 * k);
+    Z(span(0, n - 1), span(0, k - 1)) = X; 
+    Z(span(0, n - 1), span(k, 2 * k - 1)) = Y; 
+    
+    // Prewhiten data if asked for
+    if (prewhiten == true){
+        Z = prewhitenData(Z);
+        n = Z.n_rows;
+    }
+    
+    // Set some parameters for block of blocks bootstrap
+    // no blocks
+    int K = ceil(n/b);
+    int L_max = L;
+    
+    // Do bootstrap algorithm
+    arma::mat X_Z = trans(Z.cols(0, k - 1));
+    arma::mat Y_Z = trans(Z.cols(k, 2 * k - 1));
+    arma::mat shiftedX(k, n);
+    arma::mat shiftedY(k, n);
+    arma::mat D_X(k * k * (L_max + 1), n);
+    arma::mat D_Y(k * k * (L_max + 1), n);
+    
+    
+    // Step (1) in Jin 2019
+    arma::colvec one_vec(k, fill::ones);
+    arma::colvec zero_vec(k, fill::zeros);
+    D_X.rows(0, k * k - 1) = (kron(one_vec, X_Z) % kron(X_Z, one_vec)).eval();
+    D_Y.rows(0, k * k - 1) = (kron(one_vec, Y_Z) % kron(Y_Z, one_vec)).eval();
+    
+    int lower = k * k;
+    int upper = 0;
+    double epsX = max(vectorise(X_Z));
+    double epsY = max(vectorise(Y_Z));
+    // Compute D matrices
+    for (int l = 1; l < L_max + 1; l++){
+        upper = lower + k * k - 1;
+        
+        // Compute D_X for every l
+        shiftedX = shift(X_Z, -l, 1);
+        shiftedX.cols(n - l, n - 1).clean(epsX * epsX + 10000);
+        D_X.rows(lower, upper) = (kron(one_vec, shiftedX) % kron(X_Z, one_vec)).eval();
+        
+        // Compute D_Y for every l
+        shiftedY = shift(Y_Z, -l, 1);
+        shiftedY.cols(n - l, n - 1).clean(epsY * epsY + 10000);
+        D_Y.rows(lower, upper) = (kron(one_vec, shiftedY) % kron(Y_Z, one_vec)).eval();
+        
+        lower = upper + 1; 
+    }
+    
+    arma::mat D = D_X - D_Y;
+    
+    // Step (2) in Jin 2019
+    int Tstar = n - std::max(L_max, b);
+    // Block starting indices
+    arma::imat block_ind(B * K, b, fill::zeros);
+    block_ind.col(0) =  randi(B * K, distr_param(0, Tstar - 1));
+    // Get blocks
+    for (int i = 0; i < B * K; i++){
+        block_ind.row(i) = linspace<irowvec>(block_ind(i, 0), block_ind(i, 0) + b - 1, b);
+    }
+    
+    // Step (3) in Jin 2019
+    // Get bootstrap resample indicies 
+    arma::imat boot_ind((K * b), B, fill::zeros);
+    for (int l = 1; l < B + 1; l++){
+        boot_ind.col(l - 1) = vectorise(trans(block_ind.rows((l - 1) * K, l * K - 1)));
+    }
+    
+    // Step (4) in Jin 2019
+    // Compute bootstrapped deltas
+    arma::mat Delta_l(k * k * (L_max + 1), B) ;
+    for (int i = 0; i < B; i++){
+        Delta_l.col(i) = mean(D.cols(conv_to<uvec>::from(boot_ind.col(i))), 1);
+    }
+    arma::colvec Delta_bar = mean(Delta_l, 1);
+    
+    // Step (5) in Jin 2019
+    // Compute boostrapped covariance
+    arma::mat diff = Delta_l.each_col() - Delta_bar;
+    
+    // Remove duplicate rows in sigma and delta
+    if ( k > 1 ){
+        arma::mat dup2(k, k, fill::ones);
+        arma::mat dup3 = arma::trimatu(dup2, 1);
+        arma::uvec dup4 = find(vectorise(dup3));
+        if ( k > 2){
+            Delta_l.shed_rows(dup4);
+            Delta_bar.shed_rows(dup4);
+            diff.shed_rows(dup4);
+        } else {
+            Delta_l.shed_row(2);
+            Delta_bar.shed_row(2);
+            diff.shed_row(2);
+        }
+    }
+    
+    // Get fixed lag results
+    Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
+    arma::colvec delta = covar_stats["delta"];
+    std::string assump = "dep_cov";
+    if (dependent_series == false){
+        assump = "ind_cov";
+    } 
+    arma::mat covariance = covar_stats[assump];
+    
+    
+    // Compute null distribution of test statistics
+    arma::colvec S_r_L_reg(B, fill::zeros);
+    arma::colvec S_r_L_weight(B, fill::zeros);
+    for (int l = 0; l < B; l++){
+        S_r_L_reg(l) = calculateTestStat(diff.col(l), covariance, n, L, k, weight)["stat"];
+        S_r_L_weight(l) = calculateTestStat(diff.col(l), covariance, n, L, k, weight)["weight_stat"];
+    }
+    
+    // Get test statistics
+    double reg_test = calculateTestStat(delta, covariance, n, L, k, weight)["stat"];
+    double weight_test = calculateTestStat(delta, covariance, n, L, k, weight)["weight_stat"];
+    
+    
+    // Get covariance associated with statistic
+    arma::mat both_cov = covariance;
+    
+    // Compute p-values
+    double reg_no_reject = sum(S_r_L_reg > reg_test);
+    double reg_pval = (reg_no_reject + 1) / (B + 1);
+    double weight_no_reject = sum(S_r_L_weight > weight_test);
+    double weight_pval = (weight_no_reject + 1) / (B + 1);
+    
+    return Rcpp::List::create(
+        Rcpp::Named("boot_fixed_lag_stat") = reg_test,
+        Rcpp::Named("boot_fixed_lag_weight_stat") = weight_test,
+        Rcpp::Named("boot_fixed_lag_cov") = both_cov,
+        Rcpp::Named("boot_fixed_lag_weight_cov") = both_cov,
+        Rcpp::Named("boot_fixed_lag_pval") = reg_pval,
+        Rcpp::Named("boot_fixed_lag_weight_pval") = weight_pval);
+}
 
+// Function that computes test statistics fpr unweighted fixed lag bootstrap
+// [[Rcpp::export]]
+Rcpp::List calculateBootTestStatFixedUnweighted(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc, bool const & dependent_series, const arma::colvec weight) {
+    // Get some details from the inputs
+    int n = X.n_rows; // time series length
+    int k = X.n_cols; // time series dimension
+    
+    // Concatenate the series
+    arma::mat Z(n, 2 * k);
+    Z(span(0, n - 1), span(0, k - 1)) = X; 
+    Z(span(0, n - 1), span(k, 2 * k - 1)) = Y; 
+    
+    // Prewhiten data if asked for
+    if (prewhiten == true){
+        Z = prewhitenData(Z);
+        n = Z.n_rows;
+    }
+    
+    // Set some parameters for block of blocks bootstrap
+    // no blocks
+    int K = ceil(n/b);
+    int L_max = L;
+    
+    // Do bootstrap algorithm
+    arma::mat X_Z = trans(Z.cols(0, k - 1));
+    arma::mat Y_Z = trans(Z.cols(k, 2 * k - 1));
+    arma::mat shiftedX(k, n);
+    arma::mat shiftedY(k, n);
+    arma::mat D_X(k * k * (L_max + 1), n);
+    arma::mat D_Y(k * k * (L_max + 1), n);
+    
+    
+    // Step (1) in Jin 2019
+    arma::colvec one_vec(k, fill::ones);
+    arma::colvec zero_vec(k, fill::zeros);
+    D_X.rows(0, k * k - 1) = (kron(one_vec, X_Z) % kron(X_Z, one_vec)).eval();
+    D_Y.rows(0, k * k - 1) = (kron(one_vec, Y_Z) % kron(Y_Z, one_vec)).eval();
+    
+    int lower = k * k;
+    int upper = 0;
+    double epsX = max(vectorise(X_Z));
+    double epsY = max(vectorise(Y_Z));
+    // Compute D matrices
+    for (int l = 1; l < L_max + 1; l++){
+        upper = lower + k * k - 1;
+        
+        // Compute D_X for every l
+        shiftedX = shift(X_Z, -l, 1);
+        shiftedX.cols(n - l, n - 1).clean(epsX * epsX + 10000);
+        D_X.rows(lower, upper) = (kron(one_vec, shiftedX) % kron(X_Z, one_vec)).eval();
+        
+        // Compute D_Y for every l
+        shiftedY = shift(Y_Z, -l, 1);
+        shiftedY.cols(n - l, n - 1).clean(epsY * epsY + 10000);
+        D_Y.rows(lower, upper) = (kron(one_vec, shiftedY) % kron(Y_Z, one_vec)).eval();
+        
+        lower = upper + 1; 
+    }
+    
+    arma::mat D = D_X - D_Y;
+    
+    // Step (2) in Jin 2019
+    int Tstar = n - std::max(L_max, b);
+    // Block starting indices
+    arma::imat block_ind(B * K, b, fill::zeros);
+    block_ind.col(0) =  randi(B * K, distr_param(0, Tstar - 1));
+    // Get blocks
+    for (int i = 0; i < B * K; i++){
+        block_ind.row(i) = linspace<irowvec>(block_ind(i, 0), block_ind(i, 0) + b - 1, b);
+    }
+    
+    // Step (3) in Jin 2019
+    // Get bootstrap resample indicies 
+    arma::imat boot_ind((K * b), B, fill::zeros);
+    for (int l = 1; l < B + 1; l++){
+        boot_ind.col(l - 1) = vectorise(trans(block_ind.rows((l - 1) * K, l * K - 1)));
+    }
+    
+    // Step (4) in Jin 2019
+    // Compute bootstrapped deltas
+    arma::mat Delta_l(k * k * (L_max + 1), B) ;
+    for (int i = 0; i < B; i++){
+        Delta_l.col(i) = mean(D.cols(conv_to<uvec>::from(boot_ind.col(i))), 1);
+    }
+    arma::colvec Delta_bar = mean(Delta_l, 1);
+    
+    // Step (5) in Jin 2019
+    // Compute boostrapped covariance
+    arma::mat diff = Delta_l.each_col() - Delta_bar;
+    
+    // Remove duplicate rows in sigma and delta
+    if ( k > 1 ){
+        arma::mat dup2(k, k, fill::ones);
+        arma::mat dup3 = arma::trimatu(dup2, 1);
+        arma::uvec dup4 = find(vectorise(dup3));
+        if ( k > 2){
+            Delta_l.shed_rows(dup4);
+            Delta_bar.shed_rows(dup4);
+            diff.shed_rows(dup4);
+        } else {
+            Delta_l.shed_row(2);
+            Delta_bar.shed_row(2);
+            diff.shed_row(2);
+        }
+    }
+    
+    // Get fixed lag results
+    Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
+    arma::colvec delta = covar_stats["delta"];
+    std::string assump = "dep_cov";
+    if (dependent_series == false){
+        assump = "ind_cov";
+    } 
+    arma::mat covariance = covar_stats[assump];
+    
+    
+    // Compute null distribution of test statistics
+    arma::colvec S_r_L_reg(B, fill::zeros);
+    for (int l = 0; l < B; l++){
+        S_r_L_reg(l) = calculateTestStat(diff.col(l), covariance, n, L, k, weight)["stat"];
+    }
+    
+    // Get test statistics
+    double reg_test = calculateTestStat(delta, covariance, n, L, k, weight)["stat"];
+    
+    // Get covariance associated with statistic
+    arma::mat both_cov = covariance;
+    
+    // Compute p-values
+    double reg_no_reject = sum(S_r_L_reg > reg_test);
+    double reg_pval = (reg_no_reject + 1) / (B + 1);
+    
+    return Rcpp::List::create(
+        Rcpp::Named("boot_fixed_lag_stat") = reg_test,
+        Rcpp::Named("boot_fixed_lag_cov") = both_cov,
+        Rcpp::Named("boot_fixed_lag_pval") = reg_pval);
+}
+
+// Function that computes test statistics  weighted fixed lag bootstrap
+// [[Rcpp::export]]
+Rcpp::List calculateBootTestStatFixedWeighted(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc, bool const & dependent_series, const arma::colvec weight) {
+    // Get some details from the inputs
+    int n = X.n_rows; // time series length
+    int k = X.n_cols; // time series dimension
+    
+    // Concatenate the series
+    arma::mat Z(n, 2 * k);
+    Z(span(0, n - 1), span(0, k - 1)) = X; 
+    Z(span(0, n - 1), span(k, 2 * k - 1)) = Y; 
+    
+    // Prewhiten data if asked for
+    if (prewhiten == true){
+        Z = prewhitenData(Z);
+        n = Z.n_rows;
+    }
+    
+    // Set some parameters for block of blocks bootstrap
+    // no blocks
+    int K = ceil(n/b);
+    int L_max = L;
+    
+    // Do bootstrap algorithm
+    arma::mat X_Z = trans(Z.cols(0, k - 1));
+    arma::mat Y_Z = trans(Z.cols(k, 2 * k - 1));
+    arma::mat shiftedX(k, n);
+    arma::mat shiftedY(k, n);
+    arma::mat D_X(k * k * (L_max + 1), n);
+    arma::mat D_Y(k * k * (L_max + 1), n);
+    
+    
+    // Step (1) in Jin 2019
+    arma::colvec one_vec(k, fill::ones);
+    arma::colvec zero_vec(k, fill::zeros);
+    D_X.rows(0, k * k - 1) = (kron(one_vec, X_Z) % kron(X_Z, one_vec)).eval();
+    D_Y.rows(0, k * k - 1) = (kron(one_vec, Y_Z) % kron(Y_Z, one_vec)).eval();
+    
+    int lower = k * k;
+    int upper = 0;
+    double epsX = max(vectorise(X_Z));
+    double epsY = max(vectorise(Y_Z));
+    // Compute D matrices
+    for (int l = 1; l < L_max + 1; l++){
+        upper = lower + k * k - 1;
+        
+        // Compute D_X for every l
+        shiftedX = shift(X_Z, -l, 1);
+        shiftedX.cols(n - l, n - 1).clean(epsX * epsX + 10000);
+        D_X.rows(lower, upper) = (kron(one_vec, shiftedX) % kron(X_Z, one_vec)).eval();
+        
+        // Compute D_Y for every l
+        shiftedY = shift(Y_Z, -l, 1);
+        shiftedY.cols(n - l, n - 1).clean(epsY * epsY + 10000);
+        D_Y.rows(lower, upper) = (kron(one_vec, shiftedY) % kron(Y_Z, one_vec)).eval();
+        
+        lower = upper + 1; 
+    }
+    
+    arma::mat D = D_X - D_Y;
+    
+    // Step (2) in Jin 2019
+    int Tstar = n - std::max(L_max, b);
+    // Block starting indices
+    arma::imat block_ind(B * K, b, fill::zeros);
+    block_ind.col(0) =  randi(B * K, distr_param(0, Tstar - 1));
+    // Get blocks
+    for (int i = 0; i < B * K; i++){
+        block_ind.row(i) = linspace<irowvec>(block_ind(i, 0), block_ind(i, 0) + b - 1, b);
+    }
+    
+    // Step (3) in Jin 2019
+    // Get bootstrap resample indicies 
+    arma::imat boot_ind((K * b), B, fill::zeros);
+    for (int l = 1; l < B + 1; l++){
+        boot_ind.col(l - 1) = vectorise(trans(block_ind.rows((l - 1) * K, l * K - 1)));
+    }
+    
+    // Step (4) in Jin 2019
+    // Compute bootstrapped deltas
+    arma::mat Delta_l(k * k * (L_max + 1), B) ;
+    for (int i = 0; i < B; i++){
+        Delta_l.col(i) = mean(D.cols(conv_to<uvec>::from(boot_ind.col(i))), 1);
+    }
+    arma::colvec Delta_bar = mean(Delta_l, 1);
+    
+    // Step (5) in Jin 2019
+    // Compute boostrapped covariance
+    arma::mat diff = Delta_l.each_col() - Delta_bar;
+    
+    // Remove duplicate rows in sigma and delta
+    if ( k > 1 ){
+        arma::mat dup2(k, k, fill::ones);
+        arma::mat dup3 = arma::trimatu(dup2, 1);
+        arma::uvec dup4 = find(vectorise(dup3));
+        if ( k > 2){
+            Delta_l.shed_rows(dup4);
+            Delta_bar.shed_rows(dup4);
+            diff.shed_rows(dup4);
+        } else {
+            Delta_l.shed_row(2);
+            Delta_bar.shed_row(2);
+            diff.shed_row(2);
+        }
+    }
+    
+    // Get fixed lag results
+    Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
+    arma::colvec delta = covar_stats["delta"];
+    std::string assump = "dep_cov";
+    if (dependent_series == false){
+        assump = "ind_cov";
+    } 
+    arma::mat covariance = covar_stats[assump];
+    
+    
+    // Compute null distribution of test statistics
+    arma::colvec S_r_L_weight(B, fill::zeros);
+    for (int l = 0; l < B; l++){
+        S_r_L_weight(l) = calculateTestStat(diff.col(l), covariance, n, L, k, weight)["weight_stat"];
+    }
+    
+    // Get test statistics
+    double weight_test = calculateTestStat(delta, covariance, n, L, k, weight)["weight_stat"];
+    
+    // Get covariance associated with statistic
+    arma::mat both_cov = covariance;
+    
+    // Compute p-values
+    double weight_no_reject = sum(S_r_L_weight > weight_test);
+    double weight_pval = (weight_no_reject + 1) / (B + 1);
+    
+    return Rcpp::List::create(
+        Rcpp::Named("boot_fixed_lag_weight_stat") = weight_test,
+        Rcpp::Named("boot_fixed_lag_weight_cov") = both_cov,
+        Rcpp::Named("boot_fixed_lag_weight_pval") = weight_pval);
+}

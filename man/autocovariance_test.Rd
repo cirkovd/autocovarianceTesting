@@ -2,18 +2,21 @@
 % Please edit documentation in R/autocovarianceTestingWrappers.R
 \name{autocovariance_test}
 \alias{autocovariance_test}
-\title{Test for equality of autocovariance functions for two (linearly dependent) stationary time series}
+\title{Test for equality of autocovariance functions for two (linearly Weighted_Fixed_Lag) stationary time series}
 \usage{
 autocovariance_test(
   X,
   Y,
   max_lag = NULL,
-  test = "bootBartlett",
+  test = "Auto_Lag_Bartlett",
   trunc = NULL,
   num_bootstrap = 500,
   block_size = NULL,
   prewhiten = TRUE,
-  plot = FALSE
+  plot = FALSE,
+  dependent_series = TRUE,
+  bootstrap_statistic = FALSE,
+  weights = NULL
 )
 }
 \arguments{
@@ -23,68 +26,74 @@ autocovariance_test(
 
 \item{max_lag}{the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \code{max_lag} less than the one supplied. If not supplied, \code{max_lag = ceiling((log2(n))^0.9999)}.}
 
-\item{test}{the tests to be performed. Must be a vector containing a subset of \code{"Independent"}, \code{"Dependent"}, \code{"bootDependent"} and \code{"bootBartlett"}.}
+\item{test}{the tests to be performed. Must be a vector containing a subset of \code{"Fixed_Lag"}, \code{"Weighted_Fixed_Lag"}, \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"}.}
 
-\item{trunc}{for the \code{"Independent"}, \code{"Dependent"} and \code{"bootBartlett"} tests, the truncation rule used in Bartlett's formula. If not supplied, \code{trunc = floor(n^(1/3))}.}
+\item{trunc}{for the \code{"Fixed_Lag"}, \code{"Weighted_Fixed_Lag"} and \code{"Auto_Lag_Bartlett"} tests, the truncation rule used in Bartlett's formula. If not supplied, \code{trunc = floor(n^(1/3))}.}
 
-\item{num_bootstrap}{for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.}
+\item{num_bootstrap}{for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.}
 
-\item{block_size}{for the \code{"bootDependent"} and \code{"bootBartlett"} tests, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{block_size = max(floor(0.5 * n^(1/3)), 2)}.}
+\item{block_size}{for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{block_size = max(floor(0.5 * n^(1/3)), 2)}.}
 
-\item{prewhiten}{for the \code{"bootDependent"} and \code{"bootBartlett"} tests, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.}
+\item{prewhiten}{for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.}
 
 \item{plot}{should a plot of the tested sample autocovariances be made?}
+
+\item{dependent_series}{placeholder}
+
+\item{bootstrap_statistic}{placeholder}
+
+\item{weights}{placeholder}
 }
 \value{
 A named list containing many relevant statistics pertaining to each test
 \itemize{
-\item \code{delta} - for the \code{"Independent"} and \code{"Dependent"} tests, the sample difference in autocovariance functions.
-\item \code{dep_cov} - for the \code{"Dependent"} test, the asymptotic covariance matrix of the autocovariance differences.
-\item \code{ind_cov} - for the \code{"Independent"} test, the asymptotic covariance matrix of the autocovariance differences.
-\item \code{ind_stat} - for the \code{"Independent"} test, the test statistic.
-\item \code{ind_df} - for the \code{"Independent"} test, the degrees of freedom associated with the test statistic.
-\item \code{ind_weight_stat} - for the \code{"Independent"} test, the weighted test statistic.
-\item \code{ind_alpha} - for the \code{"Independent"} test, the scale parameter associated with the weighted test statistic.
-\item \code{ind_beta} - for the \code{"Independent"} test, the shape parameter associated with the weighted test statistic.
-\item \code{ind_pval} - for the \code{"Independent"} test, the associated p-value.
-\item \code{ind_weight_pval} - for the \code{"Independent"} test, the associated p-value of the weighted test.
-\item \code{dep_stat} - for the \code{"Dependent"} test, the test statistic.
-\item \code{dep_df} - for the \code{"Dependent"} test, the degrees of freedom associated with the test statistic.
-\item \code{dep_weight_stat} - for the \code{"Dependent"} test, the weighted test statistic.
-\item \code{dep_alpha} - for the \code{"Dependent"} test, the scale parameter associated with the weighted test statistic.
-\item \code{dep_beta} - for the \code{"Dependent"} test, the shape parameter associated with the weighted test statistic.
-\item \code{dep_pval} - for the \code{"Dependent"} test, the associated p-value.
-\item \code{dep_weight_pval} - for the \code{"Dependent"} test, the associated p-value of the weighted test.
-\item \code{jin_stat} - for the \code{"bootDependent"} test, the test statistic.
-\item \code{bart_stat} - for the \code{"bootBartlett"} test, the test statistic.
-\item \code{jin_L} - for the \code{"bootDependent"} test, the automatically selected lag.
-\item \code{bart_L} - for the \code{"bootBartlett"} test, the automatically selected lag.
-\item \code{jin_cov} - for the \code{"bootDependent"} test, the bootstrapped asymptotic covariance matrix.
-\item \code{bart_cov} - for the \code{"bootBartlett"} test, the bootstrapped asymptotic covariance matrix.
-\item \code{jin_pval} - for the \code{"bootDependent"} test, the pseudo p-value.
-\item \code{bart_pval} - for the \code{"bootBartlett"} test, the pseudo p-value.
+\item \code{delta} - for the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests, the sample difference in autocovariance functions.
+\item \code{dep_cov} - for the \code{"Weighted_Fixed_Lag"} test, the asymptotic covariance matrix of the autocovariance differences.
+\item \code{ind_cov} - for the \code{"Fixed_Lag"} test, the asymptotic covariance matrix of the autocovariance differences.
+\item \code{ind_stat} - for the \code{"Fixed_Lag"} test, the test statistic.
+\item \code{ind_df} - for the \code{"Fixed_Lag"} test, the degrees of freedom associated with the test statistic.
+\item \code{ind_weight_stat} - for the \code{"Fixed_Lag"} test, the weighted test statistic.
+\item \code{ind_alpha} - for the \code{"Fixed_Lag"} test, the scale parameter associated with the weighted test statistic.
+\item \code{ind_beta} - for the \code{"Fixed_Lag"} test, the shape parameter associated with the weighted test statistic.
+\item \code{ind_pval} - for the \code{"Fixed_Lag"} test, the associated p-value.
+\item \code{ind_weight_pval} - for the \code{"Fixed_Lag"} test, the associated p-value of the weighted test.
+\item \code{dep_stat} - for the \code{"Weighted_Fixed_Lag"} test, the test statistic.
+\item \code{dep_df} - for the \code{"Weighted_Fixed_Lag"} test, the degrees of freedom associated with the test statistic.
+\item \code{dep_weight_stat} - for the \code{"Weighted_Fixed_Lag"} test, the weighted test statistic.
+\item \code{dep_alpha} - for the \code{"Weighted_Fixed_Lag"} test, the scale parameter associated with the weighted test statistic.
+\item \code{dep_beta} - for the \code{"Weighted_Fixed_Lag"} test, the shape parameter associated with the weighted test statistic.
+\item \code{dep_pval} - for the \code{"Weighted_Fixed_Lag"} test, the associated p-value.
+\item \code{dep_weight_pval} - for the \code{"Weighted_Fixed_Lag"} test, the associated p-value of the weighted test.
+\item \code{jin_stat} - for the \code{"Auto_Lag_Jin"} test, the test statistic.
+\item \code{bart_stat} - for the \code{"Auto_Lag_Bartlett"} test, the test statistic.
+\item \code{jin_L} - for the \code{"Auto_Lag_Jin"} test, the automatically selected lag.
+\item \code{bart_L} - for the \code{"Auto_Lag_Bartlett"} test, the automatically selected lag.
+\item \code{jin_cov} - for the \code{"Auto_Lag_Jin"} test, the bootstrapped asymptotic covariance matrix.
+\item \code{bart_cov} - for the \code{"Auto_Lag_Bartlett"} test, the bootstrapped asymptotic covariance matrix.
+\item \code{jin_pval} - for the \code{"Auto_Lag_Jin"} test, the pseudo p-value.
+\item \code{bart_pval} - for the \code{"Auto_Lag_Bartlett"} test, the pseudo p-value.
 }
 }
 \description{
-Perform a hypothesis test for equality of autocovariance functions for two time series with one or more of the following methods: (Weighted) Independent, (Weighted) Dependent, Bootstrapped Dependent and Bootstrapped Bartlett. The former two tests assess equality up to a fixed lag, while the latter two select the "optimal lag" for testing the hypothesis using an AIC-like penalty at each lag. The tests can handle multivariate time series, but the computations become considerably more intense with an increase in dimension.
+Perform a hypothesis test for equality of autocovariance functions for two time series with one or more of the following methods: (Weighted) Fixed_Lag, (Weighted) Weighted_Fixed_Lag, Bootstrapped Weighted_Fixed_Lag and Bootstrapped Bartlett. The former two tests assess equality up to a fixed lag, while the latter two select the "optimal lag" for testing the hypothesis using an AIC-like penalty at each lag. The tests can handle multivariate time series, but the computations become considerably more intense with an increase in dimension.
 }
 \details{
-Consider two \eqn{m}-dimensional, stationary time series with mean zero. \code{autocovariance_test} tests for equality of autocovariance functions of the respective series. The \code{"Independent"} test is given by Lund et. al (2009). Their test assumes
+Consider two \eqn{m}-dimensional, stationary time series with mean zero. \code{autocovariance_test} tests for equality of autocovariance functions of the respective series. The \code{"Fixed_Lag"} test is given by Lund et. al (2009). Their test assumes
 independence of the two series and quantifies the distribution of the autocovariance differences through Bartlett's formula (see Brockwell and Davids (1991)). \code{autocovariance_test} provides the corresponding asymptotic covariance matrix under the null, \code{dep_cov}, the
-chi-square test statistic, \code{ind_stat} and its associated degrees of freedom and p-value, \code{ind_df} and \code{ind_pval}. The \code{"Dependent"} test is an extension of the \code{"Independent"} test to linearly dependent series. If the independence of the series is
-not obvious, the \code{"Dependent"} test can be used without penalty. Both tests assess equality of autocovariances up to a fixed lag \code{L}. The \code{trunc} parameter controls the truncation of the Bartlett formula infinite sum (see the vignette for more details). Any truncation rule
+chi-square test statistic, \code{ind_stat} and its associated degrees of freedom and p-value, \code{ind_df} and \code{ind_pval}. The \code{"Weighted_Fixed_Lag"} test is an extension of the \code{"Fixed_Lag"} test to linearly Weighted_Fixed_Lag series. If the independence of the series is
+not obvious, the \code{"Weighted_Fixed_Lag"} test can be used without penalty. Both tests assess equality of autocovariances up to a fixed lag \code{L}. The \code{trunc} parameter controls the truncation of the Bartlett formula infinite sum (see the vignette for more details). Any truncation rule
 must follow the assumptions of Theorem A.1 in Berkes et al. (2006).
 
-When running either the \code{"Independent"} or \code{"Dependent"} test, \code{autocovariance_test} also computes weighted variants. The weighting idea is borrowed from goodness-of-fit testing (see Fisher and Gallagher (2012)). We assign to lags \eqn{0, 1, \dots , L} weights
-\eqn{1, L/(L + 1), \dots , 1/(L + 1)}. The corresponding test statistics have distributions that can be approximated by a Gamma distribution. For the \code{"Independent"} test, \code{autocovariance_test} outputs the test statistic, \code{ind_weight_stat}, its gamma distribtion
-parameters, \code{ind_alpha} and \code{ind_beta}, and the associated p-value \code{ind_weight_pval}. The same statistics for \code{"Dependent"} are given by \code{dep_weight_stat}, \code{dep_alpha}, \code{dep_beta} and \code{dep_weight_pval}. All previously mentioned tests
+When running either the \code{"Fixed_Lag"} or \code{"Weighted_Fixed_Lag"} test, \code{autocovariance_test} also computes weighted variants. The weighting idea is borrowed from goodness-of-fit testing (see Fisher and Gallagher (2012)). We assign to lags \eqn{0, 1, \dots , L} weights
+\eqn{1, L/(L + 1), \dots , 1/(L + 1)}. The corresponding test statistics have distributions that can be approximated by a Gamma distribution. For the \code{"Fixed_Lag"} test, \code{autocovariance_test} outputs the test statistic, \code{ind_weight_stat}, its gamma distribtion
+parameters, \code{ind_alpha} and \code{ind_beta}, and the associated p-value \code{ind_weight_pval}. The same statistics for \code{"Weighted_Fixed_Lag"} are given by \code{dep_weight_stat}, \code{dep_alpha}, \code{dep_beta} and \code{dep_weight_pval}. All previously mentioned tests
 require Gaussianity of the series. The following two tests can be applied to series with non-normal distributions.
 
-The \code{"bootDependent"} (see Jin et. al (2019)) and \code{"bootBartlett"} tests compute a similar test statistic to the \code{"Dependent"} test but through a block of blocks bootstrap. The original test statistic is monotone increasing with lag, so the tests apply
+The \code{"Auto_Lag_Jin"} (see Jin et. al (2019)) and \code{"Auto_Lag_Bartlett"} tests compute a similar test statistic to the \code{"Weighted_Fixed_Lag"} test but through a block of blocks bootstrap. The original test statistic is monotone increasing with lag, so the tests apply
 an AIC-like penalty to choose the "best" lag (up to \code{L}) to perform the hypothesis test with. This provides some desirable properties under the alternative hypothesis. \code{prewhiten = TRUE} fits a large VAR(p) process to \code{X} and \code{Y} and then applies
-the tests to the residuals of said process. It is highly recommended as prewhitening improves empirical rejection rates. \code{B} and \code{b} control the number of bootstrap resamples and block length used in the \code{"bootDependent"} and \code{"bootBartlett"} tests. \code{"bootBartlett"} replaces the Jin
-et. al (2019) covariance estimate with the \code{"Dependent"} estimate averaged over each bootstrap resample. For the \code{"bootDependent"} test, \code{autocovariance_test} outputs the test statistic, \code{jin_stat}, the optimally selected lag, \code{jin_L}, the
-estimated covariance under the null, \code{jin_cov}, and psuedo p-value \code{jin_pval}. The same statistics for \code{"bootBartlett"} are given by \code{bart_stat}, \code{bart_L}, \code{bart_cov} and \code{bart_pval}.
+the tests to the residuals of said process. It is highly recommended as prewhitening improves empirical rejection rates. \code{B} and \code{b} control the number of bootstrap resamples and block length used in the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests. \code{"Auto_Lag_Bartlett"} replaces the Jin
+et. al (2019) covariance estimate with the \code{"Weighted_Fixed_Lag"} estimate averaged over each bootstrap resample. For the \code{"Auto_Lag_Jin"} test, \code{autocovariance_test} outputs the test statistic, \code{jin_stat}, the optimally selected lag, \code{jin_L}, the
+estimated covariance under the null, \code{jin_cov}, and psuedo p-value \code{jin_pval}. The same statistics for \code{"Auto_Lag_Bartlett"} are given by \code{bart_stat}, \code{bart_L}, \code{bart_cov} and \code{bart_pval}.
 
 For more on key assumptions behind each of the tests and a thorough example, please see the vignette.
 }
@@ -103,7 +112,7 @@ Y <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 2]))
 
 # Run tests for equality of autocovariance functions up to lag 5
 output <- autocovariance_test(X, Y, max_lag = 5, 
-test = c("Independent","Dependent","bootDependent","bootBartlett"))
+test = c("Fixed_Lag","Weighted_Fixed_Lag","Auto_Lag_Jin","Auto_Lag_Bartlett"))
 # All tests fail to reject the null
 output
 
@@ -146,8 +155,10 @@ qqline(female_stnd)
 # Check for correlation
 ccf(female_stnd, male_stnd) # Clear lag zero correlation
 
-# The series are likely gaussian and dependent, hence it makes most sense to use "Dependent" test
-output2 <- autocovariance_test(matrix(male_stnd), matrix(female_stnd), 5, test = "Dependent")
+# The series are likely gaussian and Weighted_Fixed_Lag, hence it 
+# makes most sense to use "Weighted_Fixed_Lag" test
+output2 <- autocovariance_test(matrix(male_stnd), matrix(female_stnd), 5, 
+test = "Weighted_Fixed_Lag")
 output2
 
 # Both the weighted and unweighted tests fail to reject the null hypothesis
@@ -159,6 +170,6 @@ acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 Berkes, I., Horvath, L., Kokoszka, P. and Shao, Q. M. (2006). \emph{On discriminating between longrange dependence and changes in the mean. Annals of Statistics, 34, 1140–65}\cr
 \cr Brockwell, P. J., and Davis, R. A. (1991). \emph{Time series: theory and methods (Second ed.). New York: Springer-Verlag. }\cr
 \cr Fisher, T. J., and Gallagher, C. M. (2012).  \emph{New weighted portmanteau statistics for time series goodness  of  fit  testing, J.  Amer.  Statist.  Assoc., 107(498),  777–787}\cr
-\cr Jin, L., Cai, L., and Wang, S. (2019).  \emph{A computational bootstrap procedure to compare two dependent  time  series, Journal  of  Statistical  Computation  and  Simulation, 89(15), 2831–2847}\cr
+\cr Jin, L., Cai, L., and Wang, S. (2019).  \emph{A computational bootstrap procedure to compare two Weighted_Fixed_Lag  time  series, Journal  of  Statistical  Computation  and  Simulation, 89(15), 2831–2847}\cr
 \cr Lund, R., Bassily, H., and Vidakovic, B. (2009). \emph{Testing equality of stationary autocovariances, Journal of Time Series Analysis, 30(3), 332–348}\cr
 }

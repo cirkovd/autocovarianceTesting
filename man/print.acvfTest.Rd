@@ -29,7 +29,7 @@ Y <- matrix(arima.sim(model = list(ar  = 0.8), n, innov = Errors[ , 2]))
 
 # Run tests for equality of autocovariance functions up to lag 5
 output <- autocovariance_test(X, Y, max_lag = 5, 
-test = c("Independent","Dependent","bootDependent","bootBartlett"))
+test = c("Fixed_Lag","Weighted_Fixed_Lag","Auto_Lag_Jin","Auto_Lag_Bartlett"))
 # All tests fail to reject the null
 print(output)
 }

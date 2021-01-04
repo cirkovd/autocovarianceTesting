@@ -92,8 +92,9 @@ usincome <- usincome - mean(usincome)
 
 set.seed(4321)
 # Run test for up to lag 12
-output <- autocovarianceTest(usconsumption, usincome, max_lag= 12, 
-                   test = c("Dependent", "bootBartlett", "bootDependent"),
+output <- autocovariance_test(usconsumption, usincome, max_lag= 12, 
+                   test = c("Fixed_Lag", "Weighted_Fixed_Lag", 
+                            "Auto_Lag_Jin", "Auto_Lag_Bartlett"),
                    num_bootstrap = 1000, prewhiten = TRUE, plot = TRUE)
 ```
 
@@ -114,14 +115,14 @@ output
     ## 
     ##  Weighted Fixed Lag Tests:
     ##  
-    ##                Test  Gamma alpha  beta p-value
-    ##  Weighted Dependent 50.911 3.517 1.392       0
+    ##       Test  Gamma alpha  beta p-value
+    ##  Dependent 50.911 3.517 1.392       0
     ## 
     ##  Automatic Lag Selection Tests:
     ##  
-    ##                Test Statitic L hat p-value
-    ##       Bootstrap-Jin   10.669     6   0.007
-    ##  Bootstrap-Bartlett   38.247     6   0.006
+    ##                Test Statistic L hat p-value
+    ##       Bootstrap-Jin    10.669     6   0.007
+    ##  Bootstrap-Bartlett    38.247     6   0.006
 
 All tests reject the null hypothesis of equality of autocovariances up
 to lag 12.

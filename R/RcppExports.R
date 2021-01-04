@@ -9,19 +9,31 @@ calculateCovariance <- function(X, Y, L, trunc) {
     .Call(`_autocovarianceTesting_calculateCovariance`, X, Y, L, trunc)
 }
 
-calculateTestStat <- function(delta, covar, n, L, k) {
-    .Call(`_autocovarianceTesting_calculateTestStat`, delta, covar, n, L, k)
+calculateTestStat <- function(delta, covar, n, L, k, weight) {
+    .Call(`_autocovarianceTesting_calculateTestStat`, delta, covar, n, L, k, weight)
 }
 
-calculateBootTestStat <- function(X, Y, L, B, b, prewhiten, trunc) {
-    .Call(`_autocovarianceTesting_calculateBootTestStat`, X, Y, L, B, b, prewhiten, trunc)
+calculateBootTestStat <- function(X, Y, L, B, b, prewhiten, trunc, dependent_series) {
+    .Call(`_autocovarianceTesting_calculateBootTestStat`, X, Y, L, B, b, prewhiten, trunc, dependent_series)
 }
 
 calculateBootTestStatJin <- function(X, Y, L, B, b, prewhiten, trunc) {
     .Call(`_autocovarianceTesting_calculateBootTestStatJin`, X, Y, L, B, b, prewhiten, trunc)
 }
 
-calculateBootTestStatBartlett <- function(X, Y, L, B, b, prewhiten, trunc) {
-    .Call(`_autocovarianceTesting_calculateBootTestStatBartlett`, X, Y, L, B, b, prewhiten, trunc)
+calculateBootTestStatBartlett <- function(X, Y, L, B, b, prewhiten, trunc, dependent_series) {
+    .Call(`_autocovarianceTesting_calculateBootTestStatBartlett`, X, Y, L, B, b, prewhiten, trunc, dependent_series)
+}
+
+calculateBootTestStatFixed <- function(X, Y, L, B, b, prewhiten, trunc, dependent_series, weight) {
+    .Call(`_autocovarianceTesting_calculateBootTestStatFixed`, X, Y, L, B, b, prewhiten, trunc, dependent_series, weight)
+}
+
+calculateBootTestStatFixedUnweighted <- function(X, Y, L, B, b, prewhiten, trunc, dependent_series, weight) {
+    .Call(`_autocovarianceTesting_calculateBootTestStatFixedUnweighted`, X, Y, L, B, b, prewhiten, trunc, dependent_series, weight)
+}
+
+calculateBootTestStatFixedWeighted <- function(X, Y, L, B, b, prewhiten, trunc, dependent_series, weight) {
+    .Call(`_autocovarianceTesting_calculateBootTestStatFixedWeighted`, X, Y, L, B, b, prewhiten, trunc, dependent_series, weight)
 }
 

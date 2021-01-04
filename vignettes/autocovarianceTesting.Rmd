@@ -157,7 +157,8 @@ CLE <- matrix(CLE)
 
 set.seed(1234)
 output <- autocovariance_test(X = NYC, Y = CLE, max_lag = 5, 
-                   test = c("Independent", "Dependent", "bootDependent", "bootBartlett"), 
+                   test = c("Fixed_Lag", "Weighted_Fixed_Lag", 
+                            "Auto_Lag_Jin", "Auto_Lag_Bartlett"), 
                    num_bootstrap = 500, block_size = NULL, prewhiten = TRUE, plot = TRUE,
                    trunc = NULL)
 output
