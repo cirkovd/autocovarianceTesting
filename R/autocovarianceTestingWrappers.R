@@ -667,23 +667,22 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
 #' 
 "cityTemps"
 
-#' Concentration of Daily Average Air Pollutants in two London Locations from 2015 to 2018
+#' Concentration of Hourly Air Pollutants in two London Locations from 2015 to 2018
 #' 
 #' @description Concentration of daily average air pollutants in the London N. Kensington and London Marylebone Road stations from 2015 to 2018. Data is taken from the Air Information Resource (UK-AIR) of the Department for Environment, Food and Rural Affairs in the United Kingdom (see https://uk-air.defra.gov.uk/).
 #'
 #' @docType data
 #'
-#' @usage data(ukAir)
+#' @usage data(londonAirQuality)
 #'
-#' @format An object of class \code{"data.frame"} with 5844 rows and 5 columns.
+#' @format An object of class \code{"data.frame"} with 140256 rows and 4 columns.
 #' \describe{
 #'   \item{Site}{the location of measurement, London N. Kensington or London Marylebone Road.}
 #'   \item{Parameter}{the pollutant, Nitric Oxide or Nitrogen Dioxide}
-#'   \item{Date}{the date of the measurement}
-#'   \item{Value}{average daily concentration of pollutant (in ug/m3)}
-#'   \item{logValue}{log of average daily concentration of pollutant (in log(ug/m3))}
+#'   \item{Datetime}{the date and time of the measurement}
+#'   \item{Value}{concentration of pollutant (in ug/m3)}
 #' }
 #'
 #' @source https://uk-air.defra.gov.uk/
 #' 
-"ukAir"
+"londonAirQuality"
