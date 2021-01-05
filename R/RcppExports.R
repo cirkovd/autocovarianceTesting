@@ -13,16 +13,16 @@ calculateTestStat <- function(delta, covar, n, L, k, weight) {
     .Call(`_autocovarianceTesting_calculateTestStat`, delta, covar, n, L, k, weight)
 }
 
-calculateBootTestStat <- function(X, Y, L, B, b, prewhiten, trunc, dependent_series) {
-    .Call(`_autocovarianceTesting_calculateBootTestStat`, X, Y, L, B, b, prewhiten, trunc, dependent_series)
+calculateBootTestStat <- function(X, Y, L, B, b, prewhiten, trunc, dependent_series, average_bartlett_cov) {
+    .Call(`_autocovarianceTesting_calculateBootTestStat`, X, Y, L, B, b, prewhiten, trunc, dependent_series, average_bartlett_cov)
 }
 
 calculateBootTestStatJin <- function(X, Y, L, B, b, prewhiten, trunc) {
     .Call(`_autocovarianceTesting_calculateBootTestStatJin`, X, Y, L, B, b, prewhiten, trunc)
 }
 
-calculateBootTestStatBartlett <- function(X, Y, L, B, b, prewhiten, trunc, dependent_series) {
-    .Call(`_autocovarianceTesting_calculateBootTestStatBartlett`, X, Y, L, B, b, prewhiten, trunc, dependent_series)
+calculateBootTestStatBartlett <- function(X, Y, L, B, b, prewhiten, trunc, dependent_series, average_bartlett_cov) {
+    .Call(`_autocovarianceTesting_calculateBootTestStatBartlett`, X, Y, L, B, b, prewhiten, trunc, dependent_series, average_bartlett_cov)
 }
 
 calculateBootTestStatFixed <- function(X, Y, L, B, b, prewhiten, trunc, dependent_series, weight) {

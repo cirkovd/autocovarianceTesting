@@ -16,7 +16,8 @@ autocovariance_test(
   plot = FALSE,
   dependent_series = TRUE,
   bootstrap_fixed_stats = FALSE,
-  weights = NULL
+  weights = NULL,
+  average_bartlett_cov = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ autocovariance_test(
 \item{bootstrap_fixed_stats}{for the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests, should the test null distribution of the statistics be bootstrapped?}
 
 \item{weights}{for the \code{"Weighted_Fixed_Lag"} test, the weight placed on each lag. Should be a vector of length \code{max_lag + 1} with values between \eqn{0} and \eqn{1}. By default, weights are \code{1, max_lag/(max_lag + 1), \dots, 1/(max_lag + 1)}.}
+
+\item{average_bartlett_cov}{for the \code{"Auto_Lag_Bartlett"} test, should the covariance be estimated on the original sample or be averaged over each bootstrap resample?}
 }
 \value{
 A named list containing many relevant statistics pertaining to each test

@@ -260,7 +260,7 @@ arma::mat prewhitenData(const arma::mat & Z){
 
 // Function that computes test statistics for order lag tests 
 // [[Rcpp::export]]
-Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc, bool const & dependent_series) {
+Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc, bool const & dependent_series, bool const & average_bartlett_cov) {
     // Get some details from the inputs
     int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
@@ -377,21 +377,31 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
     arma::mat cov(k * k * (L_max + 1) - dupl, k * k * (L_max + 1) - dupl);
     cov.fill(0);
     
+    // Get fixed lag results
+    Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
+    arma::colvec stats(L_max + 1, fill::zeros);
+    arma::colvec delta = covar_stats["delta"];
+    
     // Compute bartlett covariance for each bootstrap resample
     std::string assump = "dep_cov";
     if (dependent_series == false){
         assump = "ind_cov";
     } 
-    for (int l = 0; l < B; l++){
-        arma::mat cov = (calculateCovariance(
-            X1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
-            Y1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
-            L_max,
-            trunc
-        )[assump]);
-       bart_mats.slice(l)= cov % div;
+    
+    arma::mat boot_bart = covar_stats[assump];
+    if (average_bartlett_cov == true){
+        for (int l = 0; l < B; l++){
+            arma::mat cov = (calculateCovariance(
+                X1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
+                Y1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
+                L_max,
+                trunc
+            )[assump]);
+            bart_mats.slice(l)= cov % div;
+        }
+        boot_bart = sum(bart_mats, 2);
     }
-    arma::mat boot_bart = sum(bart_mats, 2);
+    
     
     // Remove duplicate rows in sigma and delta
     if ( k > 1 ){
@@ -415,10 +425,6 @@ Rcpp::List calculateBootTestStat(const arma::mat & X, const arma::mat & Y, const
         }
     }
     
-    // Get fixed lag results
-    Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
-    arma::colvec stats(L_max + 1, fill::zeros);
-    arma::colvec delta = covar_stats["delta"];
 
     // Compute null distribution of test statistics
     arma::mat S_r_L_jin(B, L_max + 1, fill::zeros);
@@ -648,7 +654,7 @@ Rcpp::List calculateBootTestStatJin(const arma::mat & X, const arma::mat & Y, co
 
 // Function that just does Bartlett test
 // [[Rcpp::export]]
-Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc, bool const & dependent_series) {
+Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & Y, const double & L, int const & B, int const & b,  bool const & prewhiten, int const & trunc, bool const & dependent_series, bool const & average_bartlett_cov) {
     // Get some details from the inputs
     int n = X.n_rows; // time series length
     int k = X.n_cols; // time series dimension
@@ -775,26 +781,30 @@ Rcpp::List calculateBootTestStatBartlett(const arma::mat & X, const arma::mat & 
     arma::mat cov(k * k * (L_max + 1) - dupl, k * k * (L_max + 1) - dupl);
     cov.fill(0);
     
+    // Get fixed lag results
+    Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
+    arma::colvec stats(L_max + 1, fill::zeros);
+    arma::colvec delta = covar_stats["delta"];
+    
     // Compute bartlett covariance for each bootstrap resample
     std::string assump = "dep_cov";
     if (dependent_series == false){
         assump = "ind_cov";
     } 
-    for (int l = 0; l < B; l++){
-        arma::mat cov = (calculateCovariance(
-            X1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
-            Y1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
-            L_max,
-            trunc
-        )[assump]);
-        bart_mats.slice(l)= cov % div;
-    }
-    arma::mat boot_bart = sum(bart_mats, 2);
     
-    // Get fixed lag results
-    Rcpp::List covar_stats = calculateCovariance(Z.cols(0, k - 1), Z.cols(k, 2 * k - 1), L, trunc);
-    arma::colvec stats(L_max + 1, fill::zeros);
-    arma::colvec delta = covar_stats["delta"];
+    arma::mat boot_bart = covar_stats[assump];
+    if (average_bartlett_cov == true){
+        for (int l = 0; l < B; l++){
+            arma::mat cov = (calculateCovariance(
+                X1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
+                Y1.rows(conv_to<uvec>::from(boot_ind.col(l))), 
+                L_max,
+                trunc
+            )[assump]);
+            bart_mats.slice(l)= cov % div;
+        }
+        boot_bart = sum(bart_mats, 2);
+    }
 
     // Compute null distribution of test statistics
     arma::mat S_r_L_bart(B, L_max + 1, fill::zeros);

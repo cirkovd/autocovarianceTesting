@@ -50,8 +50,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // calculateBootTestStat
-Rcpp::List calculateBootTestStat(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc, bool const& dependent_series);
-RcppExport SEXP _autocovarianceTesting_calculateBootTestStat(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP, SEXP dependent_seriesSEXP) {
+Rcpp::List calculateBootTestStat(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc, bool const& dependent_series, bool const& average_bartlett_cov);
+RcppExport SEXP _autocovarianceTesting_calculateBootTestStat(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP, SEXP dependent_seriesSEXP, SEXP average_bartlett_covSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -63,7 +63,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool const& >::type prewhiten(prewhitenSEXP);
     Rcpp::traits::input_parameter< int const& >::type trunc(truncSEXP);
     Rcpp::traits::input_parameter< bool const& >::type dependent_series(dependent_seriesSEXP);
-    rcpp_result_gen = Rcpp::wrap(calculateBootTestStat(X, Y, L, B, b, prewhiten, trunc, dependent_series));
+    Rcpp::traits::input_parameter< bool const& >::type average_bartlett_cov(average_bartlett_covSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculateBootTestStat(X, Y, L, B, b, prewhiten, trunc, dependent_series, average_bartlett_cov));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -85,8 +86,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // calculateBootTestStatBartlett
-Rcpp::List calculateBootTestStatBartlett(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc, bool const& dependent_series);
-RcppExport SEXP _autocovarianceTesting_calculateBootTestStatBartlett(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP, SEXP dependent_seriesSEXP) {
+Rcpp::List calculateBootTestStatBartlett(const arma::mat& X, const arma::mat& Y, const double& L, int const& B, int const& b, bool const& prewhiten, int const& trunc, bool const& dependent_series, bool const& average_bartlett_cov);
+RcppExport SEXP _autocovarianceTesting_calculateBootTestStatBartlett(SEXP XSEXP, SEXP YSEXP, SEXP LSEXP, SEXP BSEXP, SEXP bSEXP, SEXP prewhitenSEXP, SEXP truncSEXP, SEXP dependent_seriesSEXP, SEXP average_bartlett_covSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -98,7 +99,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool const& >::type prewhiten(prewhitenSEXP);
     Rcpp::traits::input_parameter< int const& >::type trunc(truncSEXP);
     Rcpp::traits::input_parameter< bool const& >::type dependent_series(dependent_seriesSEXP);
-    rcpp_result_gen = Rcpp::wrap(calculateBootTestStatBartlett(X, Y, L, B, b, prewhiten, trunc, dependent_series));
+    Rcpp::traits::input_parameter< bool const& >::type average_bartlett_cov(average_bartlett_covSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculateBootTestStatBartlett(X, Y, L, B, b, prewhiten, trunc, dependent_series, average_bartlett_cov));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -164,9 +166,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_autocovarianceTesting_calculateAutocovariance", (DL_FUNC) &_autocovarianceTesting_calculateAutocovariance, 3},
     {"_autocovarianceTesting_calculateCovariance", (DL_FUNC) &_autocovarianceTesting_calculateCovariance, 4},
     {"_autocovarianceTesting_calculateTestStat", (DL_FUNC) &_autocovarianceTesting_calculateTestStat, 6},
-    {"_autocovarianceTesting_calculateBootTestStat", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStat, 8},
+    {"_autocovarianceTesting_calculateBootTestStat", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStat, 9},
     {"_autocovarianceTesting_calculateBootTestStatJin", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatJin, 7},
-    {"_autocovarianceTesting_calculateBootTestStatBartlett", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatBartlett, 8},
+    {"_autocovarianceTesting_calculateBootTestStatBartlett", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatBartlett, 9},
     {"_autocovarianceTesting_calculateBootTestStatFixed", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatFixed, 9},
     {"_autocovarianceTesting_calculateBootTestStatFixedUnweighted", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatFixedUnweighted, 9},
     {"_autocovarianceTesting_calculateBootTestStatFixedWeighted", (DL_FUNC) &_autocovarianceTesting_calculateBootTestStatFixedWeighted, 9},

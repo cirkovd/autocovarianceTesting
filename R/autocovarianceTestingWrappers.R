@@ -6,7 +6,7 @@ NULL
 #' 
 
 # Function to run compatibility checks
-compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot, dependent_series, bootstrap_fixed_stats, weights){
+compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot, dependent_series, bootstrap_fixed_stats, weights, average_bartlett_cov){
   
   # X and Y must have the same class
   if ( class(X)[[1]] != class(Y)[[1]] ){
@@ -195,7 +195,16 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot, dep
     stop(paste("weights must be of length max_lag + 1"))
   }
   
-  return(list(L, b, trunc, X, Y, prewhiten, plot, B, dependent_series, bootstrap_fixed_stats, weights))
+  # average_bartlett_cov must be boolean
+  if ((average_bartlett_cov == 0 | average_bartlett_cov == 1) & ("Auto_Lag_Bartlett" %in% test) ){
+    average_bartlett_cov = ifelse(average_bartlett_cov == 1, TRUE, FALSE)
+  } else {
+    if ( !is.logical(average_bartlett_cov) & ("Auto_Lag_Bartlett" %in% test) ){
+      stop(paste("average_bartlett_cov must be logical"))
+    }
+  }
+  
+  return(list(L, b, trunc, X, Y, prewhiten, plot, B, dependent_series, bootstrap_fixed_stats, weights, average_bartlett_cov))
 }
 
 
@@ -405,6 +414,7 @@ acvfPlot <- function(X, Y, L){
 #' @param dependent_series for the \code{"Fixed_Lag"}, \code{"Weighted_Fixed_Lag"} and \code{"Auto_Lag_Bartlett"} tests, should the series be assumed dependent?
 #' @param bootstrap_fixed_stats for the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests, should the test null distribution of the statistics be bootstrapped?
 #' @param weights for the \code{"Weighted_Fixed_Lag"} test, the weight placed on each lag. Should be a vector of length \code{max_lag + 1} with values between \eqn{0} and \eqn{1}. By default, weights are \code{1, max_lag/(max_lag + 1), \dots, 1/(max_lag + 1)}.
+#' @param average_bartlett_cov for the \code{"Auto_Lag_Bartlett"} test, should the covariance be estimated on the original sample or be averaged over each bootstrap resample?
 #'
 #' @return A named list containing many relevant statistics pertaining to each test
 #' \itemize{
@@ -529,10 +539,10 @@ acvfPlot <- function(X, Y, L){
 #' # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
 #' acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 #' 
-autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett", trunc = NULL, num_bootstrap = 500, block_size = NULL, prewhiten = TRUE, plot = FALSE, dependent_series = TRUE, bootstrap_fixed_stats = FALSE, weights = NULL){
+autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett", trunc = NULL, num_bootstrap = 500, block_size = NULL, prewhiten = TRUE, plot = FALSE, dependent_series = TRUE, bootstrap_fixed_stats = FALSE, weights = NULL, average_bartlett_cov = TRUE){
   
   # Compatibility Tests and reassign L if need be
-  Lb <- compatibilityChecks(X, Y, max_lag, test, trunc, num_bootstrap, block_size, prewhiten, plot, dependent_series, bootstrap_fixed_stats, weights)
+  Lb <- compatibilityChecks(X, Y, max_lag, test, trunc, num_bootstrap, block_size, prewhiten, plot, dependent_series, bootstrap_fixed_stats, weights, average_bartlett_cov)
   L <- Lb[[1]]
   b <- Lb[[2]]
   trunc <- Lb[[3]]
@@ -544,6 +554,7 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
   dependent_series <- Lb[[9]]
   bootstrap_fixed_stats <- Lb[[10]]
   weights <- Lb[[11]]
+  average_bartlett_cov <- Lb[[12]]
   
   # Get some info
   n <- nrow(X)
@@ -607,7 +618,7 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
   
   # Automatic Lag Selection tests
   if ("Auto_Lag_Jin" %in% test & "Auto_Lag_Bartlett" %in% test){
-    bootTest <- calculateBootTestStat(X, Y, L, B, b, prewhiten, trunc, dependent_series)
+    bootTest <- calculateBootTestStat(X, Y, L, B, b, prewhiten, trunc, dependent_series, average_bartlett_cov)
     out <- c(out, bootTest)
   } else {
     # Compute bootstrapped tests if need be
@@ -617,7 +628,7 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
     }
     
     if ("Auto_Lag_Bartlett" %in% test){
-      bootTest <- calculateBootTestStatBartlett(X, Y, L, B, b, prewhiten, trunc, dependent_series)
+      bootTest <- calculateBootTestStatBartlett(X, Y, L, B, b, prewhiten, trunc, dependent_series, average_bartlett_cov)
       out <- c(out, bootTest)
     }
   }
