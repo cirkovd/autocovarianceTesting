@@ -6,7 +6,7 @@ NULL
 #' 
 
 # Function to run compatibility checks
-compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot, dependent_series, bootstrap_statistic, weights){
+compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot, dependent_series, bootstrap_fixed_stats, weights){
   
   # X and Y must have the same class
   if ( class(X)[[1]] != class(Y)[[1]] ){
@@ -169,12 +169,12 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot, dep
     }
   }
   
-  # bootstrap_statistic must be boolean
-  if ((bootstrap_statistic == 0 | bootstrap_statistic == 1) & ("Fixed_Lag" %in% test | "Weighted_Fixed_Lag" %in% test) ){
-    bootstrap_statistic = ifelse(bootstrap_statistic == 1, TRUE, FALSE)
+  # bootstrap_fixed_stats must be boolean
+  if ((bootstrap_fixed_stats == 0 | bootstrap_fixed_stats == 1) & ("Fixed_Lag" %in% test | "Weighted_Fixed_Lag" %in% test) ){
+    bootstrap_fixed_stats = ifelse(bootstrap_fixed_stats == 1, TRUE, FALSE)
   } else {
-    if ( !is.logical(bootstrap_statistic) & ("Fixed_Lag" %in% test | "Weighted_Fixed_Lag" %in% test) ){
-      stop(paste("bootstrap_statistic must be logical"))
+    if ( !is.logical(bootstrap_fixed_stats) & ("Fixed_Lag" %in% test | "Weighted_Fixed_Lag" %in% test) ){
+      stop(paste("bootstrap_fixed_stats must be logical"))
     }
   }
   
@@ -195,7 +195,7 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot, dep
     stop(paste("weights must be of length max_lag + 1"))
   }
   
-  return(list(L, b, trunc, X, Y, prewhiten, plot, B, dependent_series, bootstrap_statistic, weights))
+  return(list(L, b, trunc, X, Y, prewhiten, plot, B, dependent_series, bootstrap_fixed_stats, weights))
 }
 
 
@@ -233,37 +233,37 @@ print.acvfTest <- function(x, ...){
   test <- if("auto_lag_jin_stat" %in% listnames){ c(test, "Auto_Lag_Jin") }else{ test }
   test <- if("auto_lag_bart_stat" %in% listnames){ c(test, "Auto_Lag_Bartlett") }else{ test }
   
-  if( "Fixed_Lag" %in% test & x$bootstrap_statistic == FALSE){
+  if( "Fixed_Lag" %in% test & x$bootstrap_fixed_stats == FALSE){
     # Initialize Fixed Lag Table
     out_table <- data.frame(0, 1, 2, 3)
     out_table <- out_table[-1, ]
   }
   
-  if( "Weighted_Fixed_Lag" %in% test & x$bootstrap_statistic == FALSE){
+  if( "Weighted_Fixed_Lag" %in% test & x$bootstrap_fixed_stats == FALSE){
     # Initialize Weighted Table
     out_table_weight <- data.frame(0, 1, 2, 3, 4)
     out_table_weight <- out_table_weight[-1, ]
   }
   
-  if( "Fixed_Lag" %in% test & x$bootstrap_statistic == TRUE){
+  if( "Fixed_Lag" %in% test & x$bootstrap_fixed_stats == TRUE){
     # Initialize Fixed Lag Table
     out_table <- data.frame(0, 1, 2)
     out_table <- out_table[-1, ]
   }
   
-  if( "Weighted_Fixed_Lag" %in% test & x$bootstrap_statistic == TRUE){
+  if( "Weighted_Fixed_Lag" %in% test & x$bootstrap_fixed_stats == TRUE){
     # Initialize Weighted Table
     out_table_weight <- data.frame(0, 1, 2)
     out_table_weight <- out_table_weight[-1, ]
   }
   
-  if ( "Fixed_Lag" %in% test & x$bootstrap_statistic == FALSE){
+  if ( "Fixed_Lag" %in% test & x$bootstrap_fixed_stats == FALSE){
     # Add Fixed_Lag tests
     out_table <- rbind(out_table, c(ifelse(x$dependent_series == FALSE, "Independent", "Dependent"), round(x$fixed_lag_stat, 3), x$fixed_lag_df, round(x$fixed_lag_pval, 3)))
     colnames(out_table) <- c("Test", "Statistic", "df", "p-value")
   }
   
-  if ( "Weighted_Fixed_Lag" %in% test & x$bootstrap_statistic == FALSE){
+  if ( "Weighted_Fixed_Lag" %in% test & x$bootstrap_fixed_stats == FALSE){
     # Add Weighted_Fixed_Lag tests
     out_table_weight <- rbind(out_table_weight, c(ifelse(x$dependent_series == FALSE, "Independent", "Dependent"), round(x$fixed_lag_weight_stat, 3), round(x$fixed_lag_weight_alpha, 3), round(x$fixed_lag_weight_beta, 3), round(x$fixed_lag_weight_pval, 3)))
     colnames(out_table_weight) <- c("Test", "Statistic", "alpha", "beta", "p-value")
@@ -271,13 +271,13 @@ print.acvfTest <- function(x, ...){
   
   # Bootstrapped Fixed Lag Tables
   
-  if ( "Fixed_Lag" %in% test & x$bootstrap_statistic == TRUE){
+  if ( "Fixed_Lag" %in% test & x$bootstrap_fixed_stats == TRUE){
     # Add Fixed_Lag tests
     out_table <- rbind(out_table, c(ifelse(x$dependent_series == FALSE, "Independent", "Dependent"), round(x$boot_fixed_lag_stat, 3), round(x$boot_fixed_lag_pval, 3)))
     colnames(out_table) <- c("Test", "Statistic", "p-value")
   }
   
-  if ( "Weighted_Fixed_Lag" %in% test & x$bootstrap_statistic == TRUE){
+  if ( "Weighted_Fixed_Lag" %in% test & x$bootstrap_fixed_stats == TRUE){
     # Add Weighted_Fixed_Lag tests
     out_table_weight <- rbind(out_table_weight, c(ifelse(x$dependent_series == FALSE, "Independent", "Dependent"), round(x$boot_fixed_lag_weight_stat, 3), round(x$boot_fixed_lag_weight_pval, 3)))
     colnames(out_table_weight) <- c("Test", "Statistic", "p-value")
@@ -302,8 +302,8 @@ print.acvfTest <- function(x, ...){
     colnames(out_table_boot) <- c("Test", "Statistic", "L hat", "p-value")
   }
   
-  test_string <- ifelse(x$bootstrap_statistic == TRUE, "\n Boot Fixed Lag Tests:\n \n", "\n Fixed Lag Tests:\n \n")
-  weighted_test_string <- ifelse(x$bootstrap_statistic == TRUE, "\n Boot Weighted Fixed Lag Tests:\n \n", "\n Weighted Fixed Lag Tests:\n \n")
+  test_string <- ifelse(x$bootstrap_fixed_stats == TRUE, "\n Boot Fixed Lag Tests:\n \n", "\n Fixed Lag Tests:\n \n")
+  weighted_test_string <- ifelse(x$bootstrap_fixed_stats == TRUE, "\n Boot Weighted Fixed Lag Tests:\n \n", "\n Weighted Fixed Lag Tests:\n \n")
   
   if ("Fixed_Lag" %in% test ){
     cat(test_string)
@@ -398,12 +398,12 @@ acvfPlot <- function(X, Y, L){
 #' @param max_lag the maximum lag to be considered. Must be a positive integer less than \eqn{n}. Note that the automatic lag selection tests may choose \code{max_lag} less than the one supplied. If not supplied, \code{max_lag = ceiling((log2(n))^0.9999)}.
 #' @param test the tests to be performed. Must be a vector containing a subset of \code{"Fixed_Lag"}, \code{"Weighted_Fixed_Lag"}, \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"}.
 #' @param trunc for the \code{"Fixed_Lag"}, \code{"Weighted_Fixed_Lag"} and \code{"Auto_Lag_Bartlett"} tests, the truncation rule used in Bartlett's formula. If not supplied, \code{trunc = floor(n^(1/3))}.
-#' @param num_bootstrap for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_statistic = TRUE}, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.
-#' @param block_size for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_statistic = TRUE}, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{block_size = max(floor(0.5 * n^(1/3)), 2)}.
-#' @param prewhiten for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_statistic = TRUE}, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.
+#' @param num_bootstrap for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_fixed_stats = TRUE}, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.
+#' @param block_size for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_fixed_stats = TRUE}, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{block_size = max(floor(0.5 * n^(1/3)), 2)}.
+#' @param prewhiten for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_fixed_stats = TRUE}, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.
 #' @param plot should a plot of the tested sample autocovariances be made?
 #' @param dependent_series for the \code{"Fixed_Lag"}, \code{"Weighted_Fixed_Lag"} and \code{"Auto_Lag_Bartlett"} tests, should the series be assumed dependent?
-#' @param bootstrap_statistic for the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests, should the test null distribution of the statistics be bootstrapped?
+#' @param bootstrap_fixed_stats for the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests, should the test null distribution of the statistics be bootstrapped?
 #' @param weights for the \code{"Weighted_Fixed_Lag"} test, the weight placed on each lag. Should be a vector of length \code{max_lag + 1} with values between \eqn{0} and \eqn{1}. By default, weights are \code{1, max_lag/(max_lag + 1), \dots, 1/(max_lag + 1)}.
 #'
 #' @return A named list containing many relevant statistics pertaining to each test
@@ -427,7 +427,7 @@ acvfPlot <- function(X, Y, L){
 #'  \item \code{auto_lag_jin_pval} - for the \code{"Auto_Lag_Jin"} test, the pseudo p-value.
 #'  \item \code{auto_lag_bart_pval} - for the \code{"Auto_Lag_Bartlett"} test, the pseudo p-value.
 #'  \item \code{dependent_series} - the provided \code{dependent_series} argument.
-#'  \item \code{bootstrap_statistic} - the provided \code{bootstrap_statistic} argument.
+#'  \item \code{bootstrap_fixed_stats} - the provided \code{bootstrap_fixed_stats} argument.
 #'  \item \code{max_lag} - the provided \code{max_lag} argument.
 #'  \item \code{k} - the time series dimension.
 #'  \item \code{n} - the time series length.
@@ -450,7 +450,7 @@ acvfPlot <- function(X, Y, L){
 #' the tests to the residuals of said process. It is highly recommended as prewhitening improves empirical rejection rates. \code{num_bootstrap} and \code{block_size} control the number of bootstrap resamples and block length used in the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests. \code{"Auto_Lag_Bartlett"} replaces the Jin 
 #' et. al (2019) covariance estimate with the \code{"Fixed_Lag"} estimate averaged over each bootstrap resample. For the \code{"Auto_Lag_Jin"} test, \code{autocovariance_test} outputs the test statistic, \code{auto_lag_jin_stat}, the optimally selected lag, \code{auto_lag_jin_L}, the 
 #' estimated covariance under the null, \code{auto_lag_jin_cov}, and psuedo p-value \code{auto_lag_jin_pval}. The same statistics for \code{"Auto_Lag_Bartlett"} are given by \code{auto_lag_bart_stat}, \code{auto_lag_bart_L}, \code{auto_lag_bart_cov} and \code{auto_lag_bart_pval}. Alternatively, one may choose to bootstrap the
-#' \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests by setting \code{bootstrap_statistic = TRUE}. This uses the same covariance estimate as the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests, but approximates the null distribution via the Block of Blocks bootstrap.
+#' \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests by setting \code{bootstrap_fixed_stats = TRUE}. This uses the same covariance estimate as the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests, but approximates the null distribution via the Block of Blocks bootstrap.
 #' 
 #' For more on key assumptions behind each of the tests and a thorough example, please see the vignette. 
 #' 
@@ -529,10 +529,10 @@ acvfPlot <- function(X, Y, L){
 #' # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
 #' acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 #' 
-autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett", trunc = NULL, num_bootstrap = 500, block_size = NULL, prewhiten = TRUE, plot = FALSE, dependent_series = TRUE, bootstrap_statistic = FALSE, weights = NULL){
+autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett", trunc = NULL, num_bootstrap = 500, block_size = NULL, prewhiten = TRUE, plot = FALSE, dependent_series = TRUE, bootstrap_fixed_stats = FALSE, weights = NULL){
   
   # Compatibility Tests and reassign L if need be
-  Lb <- compatibilityChecks(X, Y, max_lag, test, trunc, num_bootstrap, block_size, prewhiten, plot, dependent_series, bootstrap_statistic, weights)
+  Lb <- compatibilityChecks(X, Y, max_lag, test, trunc, num_bootstrap, block_size, prewhiten, plot, dependent_series, bootstrap_fixed_stats, weights)
   L <- Lb[[1]]
   b <- Lb[[2]]
   trunc <- Lb[[3]]
@@ -542,7 +542,7 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
   plot <- Lb[[7]]
   B <- Lb[[8]]
   dependent_series <- Lb[[9]]
-  bootstrap_statistic <- Lb[[10]]
+  bootstrap_fixed_stats <- Lb[[10]]
   weights <- Lb[[11]]
   
   # Get some info
@@ -557,7 +557,7 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
   out <- c(out, deltaCovar)
   
   # Compute Independent Fixed Lag test
-  if ("Fixed_Lag" %in% test & dependent_series == FALSE & bootstrap_statistic == FALSE){
+  if ("Fixed_Lag" %in% test & dependent_series == FALSE & bootstrap_fixed_stats == FALSE){
     indTest <- calculateTestStat(deltaCovar$delta, deltaCovar$ind_cov, n, L, k, weights)
     # Compute p-values
     indTest$pval <- stats::pchisq(indTest$stat, df = indTest$df, lower.tail = FALSE)
@@ -565,14 +565,14 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
     out <- c(out, indTest[c(1, 2, 6)])
   }
   # Compute Independent Weighted Fix Lag test
-  if ("Weighted_Fixed_Lag" %in% test & dependent_series == FALSE & bootstrap_statistic == FALSE){
+  if ("Weighted_Fixed_Lag" %in% test & dependent_series == FALSE & bootstrap_fixed_stats == FALSE){
     indWeightTest <- calculateTestStat(deltaCovar$delta, deltaCovar$ind_cov, n, L, k, weights)
     indWeightTest$weight_pval <- stats::pgamma(indWeightTest$weight_stat, shape = indWeightTest$weight_alpha, scale = indWeightTest$weight_beta, lower.tail = FALSE)
     names(indWeightTest) <- paste0("fixed_lag_",names(indWeightTest))
     out <- c(out, indWeightTest[3:6])
   }
   # Compute Dependent Fixed Lag test
-  if ("Fixed_Lag" %in% test & dependent_series == TRUE & bootstrap_statistic == FALSE){
+  if ("Fixed_Lag" %in% test & dependent_series == TRUE & bootstrap_fixed_stats == FALSE){
     depTest <- calculateTestStat(deltaCovar$delta, deltaCovar$dep_cov, n, L, k, weights)
     # Compute p-values
     depTest$pval <- stats::pchisq(depTest$stat, df = depTest$df, lower.tail = FALSE)
@@ -580,7 +580,7 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
     out <- c(out, depTest[c(1, 2, 6)])
   }
   # Compute Dependent Weighted Fix Lag test
-  if ("Weighted_Fixed_Lag" %in% test & dependent_series == TRUE & bootstrap_statistic == FALSE){
+  if ("Weighted_Fixed_Lag" %in% test & dependent_series == TRUE & bootstrap_fixed_stats == FALSE){
     depWeightTest <- calculateTestStat(deltaCovar$delta, deltaCovar$dep_cov, n, L, k, weights)
     depWeightTest$weight_pval <- stats::pgamma(depWeightTest$weight_stat, shape = depWeightTest$weight_alpha, scale = depWeightTest$weight_beta, lower.tail = FALSE)
     names(depWeightTest) <- paste0("fixed_lag_",names(depWeightTest))
@@ -589,17 +589,17 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
   
   
   # Fixed Lag Bootstrapped tests 
-  if ("Fixed_Lag" %in% test & "Weighted_Fixed_Lag" %in% test & bootstrap_statistic == TRUE){
+  if ("Fixed_Lag" %in% test & "Weighted_Fixed_Lag" %in% test & bootstrap_fixed_stats == TRUE){
     fixedBoot <- calculateBootTestStatFixed(X, Y, L, B, b, prewhiten, trunc, dependent_series, weights)
     out <- c(out, fixedBoot)
   } else {
     
-    if ("Fixed_Lag" %in% test & bootstrap_statistic == TRUE){
+    if ("Fixed_Lag" %in% test & bootstrap_fixed_stats == TRUE){
       fixedUnweightedBoot <- calculateBootTestStatFixedUnweighted(X, Y, L, B, b, prewhiten, trunc, dependent_series, weights)
       out <- c(out, fixedUnweightedBoot)
     }
     
-    if ("Weighted_Fixed_Lag" %in% test & bootstrap_statistic == TRUE){
+    if ("Weighted_Fixed_Lag" %in% test & bootstrap_fixed_stats == TRUE){
       fixedWeightedBoot <- calculateBootTestStatFixedWeighted(X, Y, L, B, b, prewhiten, trunc, dependent_series, weights)
       out <- c(out, fixedWeightedBoot)
     }
@@ -623,7 +623,7 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
   }
   
   out$dependent_series <- dependent_series
-  out$bootstrap_statistic <- bootstrap_statistic
+  out$bootstrap_fixed_stats <- bootstrap_fixed_stats
   out$max_lag <- L
   out$k <- k
   out$n <- n
