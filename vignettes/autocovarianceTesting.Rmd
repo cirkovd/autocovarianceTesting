@@ -36,9 +36,9 @@ See @BrockwellDavis:1991, among other sources, for definitions of the above term
 
 for $1 \leq i, j \leq m$ and $1 \leq l \leq L$ where $L$ is a fixed constant less than $n$. To test the hypothesis, `autocovarianceTest` provides four methods: `"Independent"`, `"Dependent"`, `"bootDependent"` and `"bootBartlett"`. The choice of method should rest heavily on their assumptions, which this document is made to clarify.
 
-## Independent & Dependent tests
+## Fixed lag tests
 
-@lund2009testing first proposed the `"Independent"` test. The `"Dependent"` test is an extension of the `"Independent"` test that allows $\mathbf{X}_t$ and $\mathbf{Y}_t$ to be linearly dependent. Both tests quantify the asymptotic distribution of the autocovariances (and thus their differences) under the null hypothesis through Bartlett's Theorem. 
+@lund2009testing first proposed the independent `"Fixed_Lag"` test. The dependent test (using `dependent_series = TRUE`) is an extension of the independent `"Fixed_Lag"` test that allows $\mathbf{X}_t$ and $\mathbf{Y}_t$ to be linearly dependent. Both tests quantify the asymptotic distribution of the autocovariances (and thus their differences) under the null hypothesis through Bartlett's Theorem. 
 
 <hr>
 **Theorem:**(Multivariate Bartlett's Theorem) Let $\mathbf{Z}_t$ be a $m$-dimensional stationary processes with representation
@@ -57,25 +57,25 @@ as $n \rightarrow \infty$ where $\mathbf{\Lambda} = [\text{vec}(\Gamma_{\mathbf{
 
 The key observation here is that in order to evaluate the asymptotic distribution of the autocovariances, one must assume the underlying series are *Gaussian*.
 
-So in summary, to perform the `"Independent"` or `"Dependent"` tests, one must assume
+So in summary, to perform the `"Fixed_Lag"` test, one must assume
 
 * $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ are **mean zero**, **stationary**, and **Gaussian**.
-* for the `"Independent"` test, $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ must be **independent**.
-* for the `"Dependent"` test, $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ can be **linearly dependent** or  **independent** without penalty.
+* for `dependent_series = FALSE`, $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ must be **independent**.
+* for `dependent_series = TRUE`, $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ can be **linearly dependent** or  **independent** without penalty.
 
-That is, even if the series are independent, the `"Dependent"` test can still be used without any discernible loss in test accuracy. Thus, if choosing between the two, the `"Dependent"` test is always the safer option.
+That is, even if the series are independent, the dependent test can still be used without any discernible loss in test accuracy. Thus, if choosing between the two, the dependent test is always the safer option.
 
-In addition, the `"Independent"` or `"Dependent"` tests compute weighted variants. The weighted variants place emphasis on lower lag autocovariances by applying the weights $1, \frac{L}{L + 1}, \frac{L - 1}{L + 1}, \dots, \frac{1}{L + 1}$ to the autocovariance functions at lags $0, 1, 2, \dots, L$, respectively. In short memory situations, this may enhance hypothesis test accuracy. Further, this weighting diminishes the effect of higher lag autocovariances, which are known to be poorly estimated. Hence it may be beneficial to use the weighted tests when testing with a large $L$. See @FisherGallagher:2012 for more discussion on this idea.
+In addition, weighted fixed lag variants can be computed via `test = "Weighted_Fixed_Lag"`. By default, the weighted variants place emphasis on lower lag autocovariances by applying the weights $1, \frac{L}{L + 1}, \frac{L - 1}{L + 1}, \dots, \frac{1}{L + 1}$ to the autocovariance functions at lags $0, 1, 2, \dots, L$, respectively. In short memory situations, this may enhance hypothesis test accuracy. Further, this weighting diminishes the effect of higher lag autocovariances, which are known to be poorly estimated. Hence it may be beneficial to use the weighted tests when testing with a large $L$. See @FisherGallagher:2012 for more discussion on this idea.
 
-## bootDependent & bootBartlett tests
+## Automatic lag selection tests
 
-A key assumption in the `"Independent"` and `"Dependent"` tests are that $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ are Gaussian. But what if they are not? @jin2019computational tackled this problem by employing a blocks of blocks bootstrap to approximate the sampling distribution of the autocovariance differences between $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$. This procedure relaxes the Gaussianity assumption imposed by the previously mentioned tests. We refer to this test as the `"bootDependent"` test.
+A key assumption in the `"Fixed_Lag"` tests are that $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ are Gaussian. But what if they are not? @jin2019computational tackled this problem by employing a blocks of blocks bootstrap to approximate the sampling distribution of the autocovariance differences between $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$. This procedure relaxes the Gaussianity assumption imposed by the previously mentioned tests. We refer to this test as the `"Auto_Lag_Jin"` test.
 
-In employing the `"bootDependent"` test, @jin2019computational constructs a boostrapped estimate of the asymptotic covariance matrix of the autocovariance differences (see their paper for more details). We offer an alternative boostrapped covariance by applying the Bartlett covariance estimate used in the `"Dependent"` test to each boostrap resample, which potentially improves Type I error rates but at a relatively large computational cost. We refer to this alternative as the `"bootBarlett"` test.
+In employing the `"Auto_Lag_Jin"` test, @jin2019computational constructs a boostrapped estimate of the asymptotic covariance matrix of the autocovariance differences (see their paper for more details). We offer an alternative boostrapped covariance by applying the Bartlett covariance estimate used in the `"Fixed_Lag"` test to each boostrap resample, which potentially improves Type I error rates but at a relatively large computational cost. We refer to this alternative as the `"Auto_Lag_Bartlett"` test.
 
-The `"bootDependent"` and `"bootBarlett"` test have some additional desirable properties under both the null and alternative hypothesis. They achieve this my penalizing their test statistics (which are monotone increasing with $L$) based on an AIC-type criteria. This selects the "optimal" lag to evaluate the hypothesis with. Thus, $L$ here takes on a different meaning. It is the maximum lag that is considered when performing the test, not necessarily the lag at which the test will be performed with.
+The `"Auto_Lag_Jin"` and `"Auto_Lag_Bartlett"` test have some additional desirable properties under both the null and alternative hypothesis. They achieve this my penalizing their test statistics (which are monotone increasing with $L$) based on an AIC-type criteria. This selects the "optimal" lag to evaluate the hypothesis with. Thus, $L$ here takes on a different meaning. It is the maximum lag that is considered when performing the test, not necessarily the lag at which the test will be performed with.
 
-In summary, to perform the `"bootDependent"` or `"bootBarlett"` tests, one must assume
+In summary, to perform the `"Auto_Lag_Jin"` or `"Auto_Lag_Bartlett"` tests, one must assume
 
 * $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ are **mean zero** and **stationary**
 * $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ can either be **independent** or **linearly dependent**
@@ -148,7 +148,7 @@ CLE <- cityTemps2$std_temp[cityTemps2$City == "Cleveland"]
 ccf(NYC, CLE)
 ```
 
-The plot of the cross-correlation function clearly suggests that the two series exhibit linear dependence at multiple lags. Thus when testing, we should not use the `"Independent"` test. However we will show it here just as an example of what can go wrong when violating an assumption.
+The plot of the cross-correlation function clearly suggests that the two series exhibit linear dependence at multiple lags. Thus when testing, we should not use the `dependent_series = FALSE` option.
 
 ```{r, fig.width = 7.1, fig.height = 4}
 # Make sure the series are column matrices as in the documentation
@@ -164,8 +164,8 @@ output <- autocovariance_test(X = NYC, Y = CLE, max_lag = 5,
 output
 ```
 
-Interestingly, when violating the independence assumption, the `"Independent"` tests fail to reject the null hypothesis, giving a different outcome than the other unweighted tests. In this case, emphasizing earlier lags also results in a failure to reject the null hypothesis. Given the Gaussian nature of the series, the `"Dependent"` unweighted test seems most trustworthy, and its conclusion is further bolstered by the 
-`"bootDependent"` and `"bootBartlett"` tests.
+In this case, emphasizing earlier lags results in a failure to reject the null hypothesis. Given the Gaussian nature of the series, the `"Fixed_Lag"` unweighted test seems most trustworthy, and its conclusion is further bolstered by the 
+`"Auto_Lag_Jin"` and `"Auto_Lag_Bartlett"` tests.
 
 ## References
 
