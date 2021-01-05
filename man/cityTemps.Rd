@@ -7,7 +7,8 @@
 \format{
 An object of class \code{"data.frame"} with 1440 rows and 4 columns.
 \describe{
-\item{City}{the city, CLE or NYC.}
+\item{City}{the city, Cleveland or New York.}
+\item{Code}{the airport code, KCLE or KJFK.}
 \item{Year}{the year of the high temperature.}
 \item{Month }{the month of the high temperature.}
 \item{TMAX}{the high temperature (degrees Farenheit).}

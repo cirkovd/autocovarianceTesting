@@ -92,8 +92,8 @@ head(cityTemps)
 # Create a date variable for plotting
 cityTemps$Date <- lubridate::ymd(paste(cityTemps$Year, "-", cityTemps$Month, "-", 1))
 # Subset data
-NYCdata <- cityTemps[cityTemps$City == "NYC",]
-CLEdata <- cityTemps[cityTemps$City == "CLE",]
+NYCdata <- cityTemps[cityTemps$City == "New York",]
+CLEdata <- cityTemps[cityTemps$City == "Cleveland",]
 
 # Plotting
 par(mfrow = c(2, 1), oma = c(3, 3, 2, 2), mar = c(1, 1, 0, 0), mgp = c(1, 1, 0), xpd = NA)
@@ -121,8 +121,8 @@ cityTemps2 <- dplyr::mutate(
   dplyr::left_join(cityTemps, month_stats, by = c("City", "Month")), 
   std_temp = (TMAX - mean_temp)/sd_temp)
 # Subset data
-NYCdata2 <- cityTemps2[cityTemps2$City == "NYC",]
-CLEdata2 <- cityTemps2[cityTemps2$City == "CLE",]
+NYCdata2 <- cityTemps2[cityTemps2$City == "New York",]
+CLEdata2 <- cityTemps2[cityTemps2$City == "Cleveland",]
 
 # Plotting
 par(mfrow = c(2, 1), oma = c(3, 3, 2, 2), mar = c(1, 1, 0, 0), mgp = c(1, 1, 0), xpd = NA)
@@ -141,8 +141,8 @@ graphics::legend("topright", legend = c("NYC", "CLE"), fill = c("blue","red"), c
 Now the series are reasonably stationary! Let's check if they exhibit any linear dependence.
 
 ```{r, fig.width = 7.1, fig.height = 4}
-NYC <- cityTemps2$std_temp[cityTemps2$City == "NYC"]
-CLE <- cityTemps2$std_temp[cityTemps2$City == "CLE"]
+NYC <- cityTemps2$std_temp[cityTemps2$City == "New York"]
+CLE <- cityTemps2$std_temp[cityTemps2$City == "Cleveland"]
 
 # Look and the cross-correlation function
 ccf(NYC, CLE)

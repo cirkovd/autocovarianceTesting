@@ -110,13 +110,13 @@ output
     ## 
     ##  Fixed Lag Tests:
     ##  
-    ##       Test Chi-Sq df p-value
-    ##  Dependent 59.006 13       0
+    ##       Test Statistic df p-value
+    ##  Dependent    59.006 13       0
     ## 
     ##  Weighted Fixed Lag Tests:
     ##  
-    ##       Test  Gamma alpha  beta p-value
-    ##  Dependent 50.911 3.517 1.392       0
+    ##       Test Statistic alpha  beta p-value
+    ##  Dependent    50.911 3.517 1.392       0
     ## 
     ##  Automatic Lag Selection Tests:
     ##  

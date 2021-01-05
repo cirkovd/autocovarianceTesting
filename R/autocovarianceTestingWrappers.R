@@ -230,8 +230,8 @@ print.acvfTest <- function(x, ...){
   listnames <- names(x)
   test <- if("fixed_lag_stat" %in% listnames | "boot_fixed_lag_stat" %in% listnames){ c(test, "Fixed_Lag") }else{ test }
   test <- if("fixed_lag_weight_stat" %in% listnames | "boot_fixed_lag_weight_stat" %in% listnames){ c(test, "Weighted_Fixed_Lag") }else{ test }
-  test <- if("jin_stat" %in% listnames){ c(test, "Auto_Lag_Jin") }else{ test }
-  test <- if("bart_stat" %in% listnames){ c(test, "Auto_Lag_Bartlett") }else{ test }
+  test <- if("auto_lag_jin_stat" %in% listnames){ c(test, "Auto_Lag_Jin") }else{ test }
+  test <- if("auto_lag_bart_stat" %in% listnames){ c(test, "Auto_Lag_Bartlett") }else{ test }
   
   if( "Fixed_Lag" %in% test & x$bootstrap_statistic == FALSE){
     # Initialize Fixed Lag Table
@@ -656,7 +656,8 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
 #'
 #' @format An object of class \code{"data.frame"} with 1440 rows and 4 columns.
 #' \describe{
-#'   \item{City}{the city, CLE or NYC.}
+#'   \item{City}{the city, Cleveland or New York.}
+#'   \item{Code}{the airport code, KCLE or KJFK.}
 #'   \item{Year}{the year of the high temperature.}
 #'   \item{Month }{the month of the high temperature.}
 #'   \item{TMAX}{the high temperature (degrees Farenheit).}
