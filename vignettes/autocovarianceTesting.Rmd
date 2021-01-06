@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, warning = FALSE, message = FALSE}
 library(autocovarianceTesting)
+library(ggplot2)
 ```
 
 Let $\{\mathbf{X}_t\}$ and $\{\mathbf{Y}_t\}$ be two $m$-dimensional zero mean stationary, and potentially dependent time series of the same length $n$ with $n > m \geq 1$. Define the autocovariance function of $\mathbf{X}_t$ at lag $k$ as
@@ -159,13 +160,21 @@ set.seed(1234)
 output <- autocovariance_test(X = NYC, Y = CLE, max_lag = 5, 
                    test = c("Fixed_Lag", "Weighted_Fixed_Lag", 
                             "Auto_Lag_Jin", "Auto_Lag_Bartlett"), 
-                   num_bootstrap = 500, block_size = NULL, prewhiten = TRUE, plot = TRUE,
+                   num_bootstrap = 500, block_size = NULL, prewhiten = TRUE,
                    trunc = NULL)
 output
 ```
 
 In this case, emphasizing earlier lags results in a failure to reject the null hypothesis. Given the Gaussian nature of the series, the `"Fixed_Lag"` unweighted test seems most trustworthy, and its conclusion is further bolstered by the 
 `"Auto_Lag_Jin"` and `"Auto_Lag_Bartlett"` tests.
+
+```{r, fig.width=7, fig.height=4}
+plot_autocovariances(NYC, CLE, 5, ggplot = TRUE,
+                     plot_options = list(
+                       series_names = c("NYC", "CLE"), 
+                       bar_colors = c("blue", "red"), 
+                       var_names = NULL))
+```
 
 ## References
 

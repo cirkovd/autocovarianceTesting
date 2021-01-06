@@ -95,13 +95,11 @@ set.seed(4321)
 output <- autocovariance_test(usconsumption, usincome, max_lag= 12, 
                    test = c("Fixed_Lag", "Weighted_Fixed_Lag", 
                             "Auto_Lag_Jin", "Auto_Lag_Bartlett"),
-                   num_bootstrap = 1000, prewhiten = TRUE, plot = TRUE)
+                   num_bootstrap = 1000, prewhiten = TRUE)
 ```
 
     ## Warning in compatibilityChecks(X, Y, max_lag, test, trunc, num_bootstrap, : b is
     ## small (b < 3), bootstrap resamples may not be representative
-
-![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
 output
@@ -126,6 +124,12 @@ output
 
 All tests reject the null hypothesis of equality of autocovariances up
 to lag 12.
+
+``` r
+plot(output)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 For more on assumption checking and general function use, please see the
 vignette.

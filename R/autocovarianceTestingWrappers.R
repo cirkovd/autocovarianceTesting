@@ -6,7 +6,7 @@ NULL
 #' 
 
 # Function to run compatibility checks
-compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot, dependent_series, bootstrap_fixed_stats, weights, average_bartlett_cov){
+compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, dependent_series, bootstrap_fixed_stats, weights, average_bartlett_cov){
   
   # X and Y must have the same class
   if ( class(X)[[1]] != class(Y)[[1]] ){
@@ -141,15 +141,6 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot, dep
     }
   }
   
-  # plot must be boolean
-  if ((plot == 0 | plot == 1) & ("Auto_Lag_Jin" %in% test | "Auto_Lag_Bartlett" %in% test) ){
-    plot = ifelse(plot == 1, TRUE, FALSE)
-  } else {
-    if ( !is.logical(plot) & ("Auto_Lag_Jin" %in% test | "Auto_Lag_Bartlett" %in% test) ){
-      stop(paste("plot must be logical"))
-    }
-  }
-  
   # b Warning
   if ( b < 3 & ("Auto_Lag_Jin" %in% test | "Auto_Lag_Bartlett" %in% test) ){
     warning("b is small (b < 3), bootstrap resamples may not be representative")
@@ -204,7 +195,7 @@ compatibilityChecks <- function(X, Y, L, test, trunc, B, b, prewhiten, plot, dep
     }
   }
   
-  return(list(L, b, trunc, X, Y, prewhiten, plot, B, dependent_series, bootstrap_fixed_stats, weights, average_bartlett_cov))
+  return(list(L, b, trunc, X, Y, prewhiten, B, dependent_series, bootstrap_fixed_stats, weights, average_bartlett_cov))
 }
 
 
@@ -329,75 +320,6 @@ print.acvfTest <- function(x, ...){
   
 }
 
-# Plot helper function
-barplotACVF <- function(dataset, ymin, ymax, k, time, L){
-  if (k == 1){
-    graphics::barplot(acvf ~ timeseries + lags, xlab= "", ylab = "", col = c("#000033","#800000"), beside = TRUE, ylim = c(ymin, ymax), data = dataset)
-    graphics::lines(x = c(0, 3.5 * L), y = c(0, 0))
-  } else {
-    if (!(time %in% 1:k) & !(time %% k == 0)){
-      graphics::barplot(acvf ~ timeseries + lags, xlab= "", ylab = "", col = c("#000033","#800000"), beside = TRUE, ylim = c(ymin, ymax), xaxt = "n", yaxt = "n", data = dataset)
-      graphics::lines(x = c(0, 3.5 * L), y = c(0, 0))
-    } else {
-      if (time %in% 1:k & !(time %% k == 0)){
-        graphics::barplot(acvf ~ timeseries + lags, xlab= "", ylab = "", col = c("#000033","#800000"), beside = TRUE, ylim = c(ymin, ymax), xaxt = "n", data = dataset)
-        graphics::lines(x = c(0, 3.5 * L), y = c(0, 0))
-      } else {
-        if (!(time %in% 1:k) & time %% k == 0){
-          graphics::barplot(acvf ~ timeseries + lags, xlab= "", ylab = "", col = c("#000033","#800000"), beside = TRUE, ylim = c(ymin, ymax), yaxt = "n", data = dataset)
-          graphics::lines(x = c(0, 3.5 * L), y = c(0, 0))
-        } else {
-          graphics::barplot(acvf ~ timeseries + lags, xlab= "", ylab = "", col = c("#000033","#800000"), beside = TRUE, ylim = c(ymin, ymax), data = dataset)
-          graphics::lines(x = c(0, 3.5 * L), y = c(0, 0))
-        }
-      }
-    }
-  }
-}
-
-# Function to create a autocovariance difference plot
-acvfPlot <- function(X, Y, L){
-  # Get time series dimension
-  k <- ncol(X)
-  
-  # Get autocovariance up to lag 6
-  acvf <- stats::acf(cbind(X, Y), lag.max = L, type = "covariance", plot = FALSE)$acf
-  
-  # Shape data for plotting
-  acvfX <- data.frame(acvf = c(acvf[ , 1:k, 1:k]), lags = 0:L, dim1 = rep(paste0("Dim", 1:k), each = (L + 1) * k ), dim2 = rep(rep(paste0("Dim", 1:k), each = L + 1), k), timeseries = "X")
-  acvfY <- data.frame(acvf = c(acvf[ , (k + 1):(2 * k), (k + 1):(2 * k)]), lags = 0:L, dim1 = rep(paste0("Dim", 1:k), each = (L + 1) * k ), dim2 = rep(rep(paste0("Dim", 1:k), each = L + 1), k), timeseries = "Y")
-  plot_data <- rbind(acvfX, acvfY)
-  plot_data$lags <- factor(plot_data$lags)
-  
-  # Y axis limits
-  ymax <- max(plot_data$acvf)
-  ymin <- min(plot_data$acvf)
-  
-  # Split data by dimensions
-  data_list <- split(plot_data, paste(plot_data$dim1, plot_data$dim2))
-  
-  # Adjust margins and such
-  graphics::par(mfcol = c(k, k), oma = c(3, 3, 2, 2), mar = c(1, 1, 0, 0), mgp = c(1, 1, 0), xpd = NA)
-  # Plot 
-  for (i in 1:(k^2)){
-    barplotACVF(data_list[[i]], ymin, ymax, k, i, L)
-  }
-  graphics::par(mfrow = c(1, 1))
-  
-  # print the overall labels
-  graphics::mtext('Lag', side = 1, outer = TRUE, line = 2)
-  graphics::mtext('ACVF', side = 2, outer = TRUE, line = 2)
-  at <- seq(1 / (2 * k), 1 - 1 / (2 * k), by = 1 / k)
-  graphics::mtext(paste0(1:k), side = 3, outer = TRUE, line = 0, at = at)
-  graphics::mtext(paste0(1:k), side = 4, outer = TRUE, line = 0, at = at)
-  
-  # add legend
-  graphics::legend("topright", legend = c("X", "Y"), fill = c("#000033","#800000"), cex = 1/k)
-  # Reset graphics
-  graphics::par(oma = c(0, 0, 0, 0), mar = c(5.1, 4.1, 4.1, 2.1), mgp = c(3, 1, 0), xpd = FALSE)
-  
-}
-
 #' Test for equality of autocovariance functions for two (linearly Weighted_Fixed_Lag) stationary time series
 #'
 #' @description Perform a hypothesis test for equality of autocovariance functions for two time series with one or more of the following methods: (Weighted) Fixed_Lag, (Weighted) Weighted_Fixed_Lag, Bootstrapped Weighted_Fixed_Lag and Bootstrapped Bartlett. The former two tests assess equality up to a fixed lag, while the latter two select the "optimal lag" for testing the hypothesis using an AIC-like penalty at each lag. The tests can handle multivariate time series, but the computations become considerably more intense with an increase in dimension. 
@@ -410,7 +332,6 @@ acvfPlot <- function(X, Y, L){
 #' @param num_bootstrap for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_fixed_stats = TRUE}, the number of bootstrap resamples to be used in the Block of Blocks algorithm. Must be a positive integer.
 #' @param block_size for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_fixed_stats = TRUE}, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{block_size = max(floor(0.5 * n^(1/3)), 2)}.
 #' @param prewhiten for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_fixed_stats = TRUE}, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.
-#' @param plot should a plot of the tested sample autocovariances be made?
 #' @param dependent_series for the \code{"Fixed_Lag"}, \code{"Weighted_Fixed_Lag"} and \code{"Auto_Lag_Bartlett"} tests, should the series be assumed dependent?
 #' @param bootstrap_fixed_stats for the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests, should the test null distribution of the statistics be bootstrapped?
 #' @param weights for the \code{"Weighted_Fixed_Lag"} test, the weight placed on each lag. Should be a vector of length \code{max_lag + 1} with values between \eqn{0} and \eqn{1}. By default, weights are \code{1, max_lag/(max_lag + 1), \dots, 1/(max_lag + 1)}.
@@ -539,22 +460,21 @@ acvfPlot <- function(X, Y, L){
 #' # The weighted test comes close to rejecting, which makes sense given the large difference in lag 0
 #' acf(cbind(male_stnd, female_stnd), type = "covariance", lag.max = 5)
 #' 
-autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett", trunc = NULL, num_bootstrap = 500, block_size = NULL, prewhiten = TRUE, plot = FALSE, dependent_series = TRUE, bootstrap_fixed_stats = FALSE, weights = NULL, average_bartlett_cov = TRUE){
+autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett", trunc = NULL, num_bootstrap = 500, block_size = NULL, prewhiten = TRUE, dependent_series = TRUE, bootstrap_fixed_stats = FALSE, weights = NULL, average_bartlett_cov = TRUE){
   
   # Compatibility Tests and reassign L if need be
-  Lb <- compatibilityChecks(X, Y, max_lag, test, trunc, num_bootstrap, block_size, prewhiten, plot, dependent_series, bootstrap_fixed_stats, weights, average_bartlett_cov)
+  Lb <- compatibilityChecks(X, Y, max_lag, test, trunc, num_bootstrap, block_size, prewhiten, dependent_series, bootstrap_fixed_stats, weights, average_bartlett_cov)
   L <- Lb[[1]]
   b <- Lb[[2]]
   trunc <- Lb[[3]]
   X <- Lb[[4]]
   Y <- Lb[[5]]
   prewhiten <- Lb[[6]]
-  plot <- Lb[[7]]
-  B <- Lb[[8]]
-  dependent_series <- Lb[[9]]
-  bootstrap_fixed_stats <- Lb[[10]]
-  weights <- Lb[[11]]
-  average_bartlett_cov <- Lb[[12]]
+  B <- Lb[[7]]
+  dependent_series <- Lb[[8]]
+  bootstrap_fixed_stats <- Lb[[9]]
+  weights <- Lb[[10]]
+  average_bartlett_cov <- Lb[[11]]
   
   # Get some info
   n <- nrow(X)
@@ -643,11 +563,6 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
     out$var_names <- colnames(Y)
   } else {
     out$var_names <- colnames(X)
-  }
-  
-  # Plot 
-  if( plot == TRUE ){
-    acvfPlot(X, Y, L)
   }
   
   class(out) <- "acvfTest"

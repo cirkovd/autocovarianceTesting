@@ -58,10 +58,14 @@ set.seed(4321)
 output <- autocovariance_test(usconsumption, usincome, max_lag= 12, 
                    test = c("Fixed_Lag", "Weighted_Fixed_Lag", 
                             "Auto_Lag_Jin", "Auto_Lag_Bartlett"),
-                   num_bootstrap = 1000, prewhiten = TRUE, plot = TRUE)
+                   num_bootstrap = 1000, prewhiten = TRUE)
 output
 ```
 
 All tests reject the null hypothesis of equality of autocovariances up to lag 12.
+
+```{r}
+plot(output)
+```
 
 For more on assumption checking and general function use, please see the vignette. 

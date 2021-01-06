@@ -422,57 +422,56 @@ test_that("Functions work", {
   bgood <- 3
   testgood <- c("Fixed_Lag", "Weighted_Fixed_Lag", "Auto_Lag_Jin", "Auto_Lag_Bartlett")
   prewhitengood <- TRUE
-  plotgood <-TRUE
-  
+
   # b larger than n
   expect_error(autocovariance_test(X = Xgood, Y = Ygood, max_lag = Lgood, test = testgood, 
                                   num_bootstrap = Bgood, block_size = 1000, prewhiten = prewhitengood, 
-                                  plot = plotgood, trunc = NULL))
+                                  trunc = NULL))
   
   # b is not a integer
   expect_error(autocovariance_test(X = Xgood, Y = Ygood, max_lag = Lgood, test = testgood, 
                                   num_bootstrap = Bgood, block_size = 2.5, prewhiten = prewhitengood, 
-                                  plot = plotgood, trunc = NULL))
+                                  trunc = NULL))
   
   # L larger than n
   expect_error(autocovariance_test(X = Xgood, Y = Ygood, max_lag = 1000, test = testgood, 
                                   num_bootstrap = Bgood, block_size = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood, trunc = NULL))
+                                  trunc = NULL))
   
   # L is not a integer
   expect_error(autocovariance_test(X = Xgood, Y = Ygood, max_lag = 1.5, test = testgood, 
                                   num_bootstrap = Bgood, block_size = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood, trunc = NULL))
+                                  trunc = NULL))
   
   # B is not a integer
   expect_error(autocovariance_test(X = Xgood, Y = Ygood, max_lag = Lgood, test = testgood, 
                                   num_bootstrap = 1.5, block_size = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood, trunc = NULL))
+                                  trunc = NULL))
   
   # test contains something strange
   expect_error(autocovariance_test(X = Xgood, Y = Ygood, max_lag = Lgood, test = c("banana", "Dependent"), 
                                   num_bootstrap = Bgood, block_size = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood, trunc = NULL))
+                                  trunc = NULL))
   
   # prewhiten contains something strange
   expect_error(autocovariance_test(X = Xgood, Y = Ygood, max_lag = Lgood, test = testgood, 
                                   num_bootstrap = Bgood, block_size = bgood, prewhiten = "banana", 
-                                  plot = plotgood, trunc = NULL))
+                                  trunc = NULL))
   
   # X has missing values 
   expect_error(autocovariance_test(X = matrix(NA, nrow = 100, ncol = 2), Y = Ygood, max_lag = Lgood, test = testgood, 
                                   num_bootstrap = Bgood, block_size = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood, trunc = NULL))
+                                  trunc = NULL))
   
   # X and Y are of different dimension
   expect_error(autocovariance_test(X = matrix(1, nrow = 100, ncol = 3), Y = Ygood, max_lag = Lgood, test = testgood, 
                                   num_bootstrap = Bgood, block_size = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood, trunc = NULL))
+                                  trunc = NULL))
   
   # X and Y are of different length
   expect_error(autocovariance_test(X = matrix(1, nrow = 101, ncol = 2), Y = Ygood, max_lag = Lgood, test = testgood, 
                                   num_bootstrap = Bgood, block_size = bgood, prewhiten = prewhitengood, 
-                                  plot = plotgood, trunc = NULL))
+                                  trunc = NULL))
   
   
   

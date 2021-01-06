@@ -13,7 +13,6 @@ autocovariance_test(
   num_bootstrap = 500,
   block_size = NULL,
   prewhiten = TRUE,
-  plot = FALSE,
   dependent_series = TRUE,
   bootstrap_fixed_stats = FALSE,
   weights = NULL,
@@ -36,8 +35,6 @@ autocovariance_test(
 \item{block_size}{for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_fixed_stats = TRUE}, the block length to be used in the Block of Blocks algorithm. Must be a positive integer less than \eqn{n}. If not supplied, \code{block_size = max(floor(0.5 * n^(1/3)), 2)}.}
 
 \item{prewhiten}{for the \code{"Auto_Lag_Jin"} and \code{"Auto_Lag_Bartlett"} tests or the \code{"Fixed_Lag"} and \code{"Weighted_Fixed_Lag"} tests with \code{bootstrap_fixed_stats = TRUE}, should the supplied time series be prewhitened? \code{prewhiten = TRUE} is strongly recommended.}
-
-\item{plot}{should a plot of the tested sample autocovariances be made?}
 
 \item{dependent_series}{for the \code{"Fixed_Lag"}, \code{"Weighted_Fixed_Lag"} and \code{"Auto_Lag_Bartlett"} tests, should the series be assumed dependent?}
 
