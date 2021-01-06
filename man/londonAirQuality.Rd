@@ -7,7 +7,7 @@
 \format{
 An object of class \code{"data.frame"} with 140256 rows and 4 columns.
 \describe{
-\item{Site}{the location of measurement, London N. Kensington or London Marylebone Road.}
+\item{Site}{the location of measurement, North Kensington or Marylebone Road.}
 \item{Parameter}{the pollutant, Nitric Oxide or Nitrogen Dioxide}
 \item{Datetime}{the date and time of the measurement}
 \item{Value}{concentration of pollutant (in ug/m3)}
@@ -20,6 +20,12 @@ https://uk-air.defra.gov.uk/
 data(londonAirQuality)
 }
 \description{
-Concentration of daily average air pollutants in the London N. Kensington and London Marylebone Road stations from 2015 to 2018. Data is taken from the Air Information Resource (UK-AIR) of the Department for Environment, Food and Rural Affairs in the United Kingdom (see https://uk-air.defra.gov.uk/).
+Concentration of daily average air pollutants in the North Kensington and Marylebone Road stations from 2015 to 2018. Data is taken from the Air Information Resource (UK-AIR) of the Department for Environment, Food and Rural Affairs in the United Kingdom (see https://uk-air.defra.gov.uk/).
+}
+\details{
+The Air Information Resource (UK-AIR) data was accessed with the \code{rdefra} package in R.
+}
+\references{
+Vitolo, Claudia, Russell, Andrew, Tucker, Allan (2016). “rdefra: Interact with the UK AIR Pollution Database from DEFRA.” \emph{The Journal of Open Source Software}, 1(4). doi: 10.21105/joss.00051, http://dx.doi.org/10.21105/joss.00051.
 }
 \keyword{datasets}

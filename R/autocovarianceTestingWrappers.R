@@ -573,7 +573,8 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
 
 #' Monthly High Temperatures in New York and Cleveland from 1960 to 2019
 #' 
-#' @description Monthly high temperatures in New York City and Cleveland from 1960 to 2019. The stations that record the data are located at Cleveland Hopkins International Airport and John F. Kennedy International Airport.
+#' @description Monthly high temperatures in New York City and Cleveland from 1960 to 2019. The stations that record the data are located at Cleveland Hopkins International Airport (ICAO: KCLE; GHCND: USW00014820)
+#' and John F. Kennedy International Airport (ICAO: KJFK; GHCND: USW00094789).
 #'
 #' @docType data
 #'
@@ -582,19 +583,23 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
 #' @format An object of class \code{"data.frame"} with 1440 rows and 4 columns.
 #' \describe{
 #'   \item{City}{the city, Cleveland or New York.}
-#'   \item{Code}{the airport code, KCLE or KJFK.}
 #'   \item{Year}{the year of the high temperature.}
 #'   \item{Month }{the month of the high temperature.}
 #'   \item{TMAX}{the high temperature (degrees Farenheit).}
 #' }
 #'
+#' @details Aggregated Monthly high temperatures at the KCLE and KJFK airports. Daily high temperatures were collected from the National Oceanic and Atmospheric Administration's National Centers for Environmental Information database, the Global Historical Climatological Network (GHCND IDs: USW00014820 and USW00094789).
+#'
+#' @references Menne,  M.,  Durre,  I.,  Korzeniewski,  B.,  McNeal,  S.,  Thomas,  K.,  Yin,  X., Anthony, S. and  Ray,  R. (2012). \emph{Global  historical  climatology  network  -  daily  (ghcn-daily),  version  3.27}\cr
+#' \cr Menne, M., Durre, I., Vose, R., Gleason, B., and Houston, T. (2012). \emph{An overview of the global historical  climatology  network-daily  database. Journal  of  Atmospheric  and  Oceanic Technology, 29, 897-910.}\cr
+#'
 #' @source https://www.ncdc.noaa.gov/cdo-web/datatools/findstation
-#' 
+#'
 "cityTemps"
 
 #' Concentration of Hourly Air Pollutants in two London Locations from 2015 to 2018
 #' 
-#' @description Concentration of daily average air pollutants in the London N. Kensington and London Marylebone Road stations from 2015 to 2018. Data is taken from the Air Information Resource (UK-AIR) of the Department for Environment, Food and Rural Affairs in the United Kingdom (see https://uk-air.defra.gov.uk/).
+#' @description Concentration of daily average air pollutants in the North Kensington and Marylebone Road stations from 2015 to 2018. Data is taken from the Air Information Resource (UK-AIR) of the Department for Environment, Food and Rural Affairs in the United Kingdom (see https://uk-air.defra.gov.uk/).
 #'
 #' @docType data
 #'
@@ -602,11 +607,15 @@ autocovariance_test <- function(X, Y, max_lag = NULL, test = "Auto_Lag_Bartlett"
 #'
 #' @format An object of class \code{"data.frame"} with 140256 rows and 4 columns.
 #' \describe{
-#'   \item{Site}{the location of measurement, London N. Kensington or London Marylebone Road.}
+#'   \item{Site}{the location of measurement, North Kensington or Marylebone Road.}
 #'   \item{Parameter}{the pollutant, Nitric Oxide or Nitrogen Dioxide}
 #'   \item{Datetime}{the date and time of the measurement}
 #'   \item{Value}{concentration of pollutant (in ug/m3)}
 #' }
+#' 
+#' @details The Air Information Resource (UK-AIR) data was accessed with the \code{rdefra} package in R.
+#' 
+#' @references Vitolo, Claudia, Russell, Andrew, Tucker, Allan (2016). “rdefra: Interact with the UK AIR Pollution Database from DEFRA.” \emph{The Journal of Open Source Software}, 1(4). doi: 10.21105/joss.00051, http://dx.doi.org/10.21105/joss.00051.
 #'
 #' @source https://uk-air.defra.gov.uk/
 #' 

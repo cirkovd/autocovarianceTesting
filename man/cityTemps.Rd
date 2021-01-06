@@ -8,7 +8,6 @@
 An object of class \code{"data.frame"} with 1440 rows and 4 columns.
 \describe{
 \item{City}{the city, Cleveland or New York.}
-\item{Code}{the airport code, KCLE or KJFK.}
 \item{Year}{the year of the high temperature.}
 \item{Month }{the month of the high temperature.}
 \item{TMAX}{the high temperature (degrees Farenheit).}
@@ -21,6 +20,14 @@ https://www.ncdc.noaa.gov/cdo-web/datatools/findstation
 data(cityTemps)
 }
 \description{
-Monthly high temperatures in New York City and Cleveland from 1960 to 2019. The stations that record the data are located at Cleveland Hopkins International Airport and John F. Kennedy International Airport.
+Monthly high temperatures in New York City and Cleveland from 1960 to 2019. The stations that record the data are located at Cleveland Hopkins International Airport (ICAO: KCLE; GHCND: USW00014820)
+and John F. Kennedy International Airport (ICAO: KJFK; GHCND: USW00094789).
+}
+\details{
+Aggregated Monthly high temperatures at the KCLE and KJFK airports. Daily high temperatures were collected from the National Oceanic and Atmospheric Administration's National Centers for Environmental Information database, the Global Historical Climatological Network (GHCND IDs: USW00014820 and USW00094789).
+}
+\references{
+Menne,  M.,  Durre,  I.,  Korzeniewski,  B.,  McNeal,  S.,  Thomas,  K.,  Yin,  X., Anthony, S. and  Ray,  R. (2012). \emph{Global  historical  climatology  network  -  daily  (ghcn-daily),  version  3.27}\cr
+\cr Menne, M., Durre, I., Vose, R., Gleason, B., and Houston, T. (2012). \emph{An overview of the global historical  climatology  network-daily  database. Journal  of  Atmospheric  and  Oceanic Technology, 29, 897-910.}\cr
 }
 \keyword{datasets}
