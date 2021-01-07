@@ -3,8 +3,9 @@ Type: Package
 Title: For two stationary, possibly linearly dependent time series, perform a hypothesis test for equality of autocovariance functions
 Version: 1.0
 Date: 2020-10-22
-Authors@R: person("Cirkovic", "Daniel", email = "cirkovd@stat.tamu.edu", role = c("aut", "cre"))
-Author: Daniel Cirkovic [aut, cre]
+Authors@R: c(person("Cirkovic", "Daniel", email = "cirkovd@stat.tamu.edu", role = c("aut", "cre")), 
+             person("Fisher", "Thomas", email = "fishert4@miamioh.edu", role = c("aut")))
+Author: Daniel Cirkovic [aut, cre], Thomas J. Fisher [aut]
 Maintainer: Daniel Cirkovic <cirkovd@stat.tamu.edu>
 Description: Function that allows the user test for equality of autocovariance functions for two linearly dependent, stationary time series. The function allows the user to choose from four methods: (Weighted) Independent, (Weighted) Dependent, Bootstrapped Dependent, Bootstrapped Bartlett. The Independent test assumes independence of the series and uses Bartlett's formula to quantify the asymptotic covariance of the autocovariance differences. The Dependent test is an extension of the Independent result to dependent series. The weighted versions of these tests emphasize earlier lag autocovariance differences. The Bootstrap-Jin test employs a block of blocks bootstrap to approximate the asymptotic covariance matrix of autocovariance differences and selects the "optimal" lag when performing the test via an AIC-like penalty. The Bootstrap-Bartlett test employs the same algorithm as the Jin test, but augments the asymptotic covariance estimate via Bartlett's formula. 
 License: GPL (>=3)

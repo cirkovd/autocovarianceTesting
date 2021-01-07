@@ -1,7 +1,7 @@
 autocovarianceTesting: Test for Equality of Autocovariance Functions in
 Time Series
 ================
-Daniel Cirkovic
+Daniel Cirkovic, Thomas J. Fisher
 
 The package ‘autocovarianceTesting’ implements multiple hypothesis tests
 for testing equality of autocovariance functions for two mean zero,
